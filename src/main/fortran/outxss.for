@@ -117,16 +117,12 @@ c _________________________________________________________
 c               Step 9; Print Output every 25 structures
         ix = ix+1
         c = float(ip)/float(numdxw)*100.0
-c
-c rrb 2017/12/11; Control amount of output to
-c                 screen for Gfortran that does not
-c                 understand carrige control ('+')
-cx      if(numdivw.ge.25) 
-        if(numdxw.ge.25) then
+
+        if(numdivw.ge.25) then
           if(ix.ge.25 .or. iw.eq.nid) then
+            ix = 0
             write(6,260) iw, numdxw, c  
             call flush(6)
-            ix = 0            
           endif
         else
           write(6,260) iw, numdxw, c  

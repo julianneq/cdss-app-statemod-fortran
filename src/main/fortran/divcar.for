@@ -1342,7 +1342,9 @@ c		   ia   = account to adjust (2=From River by Storage)
         iownX=irow
         icx=111
         ia=2
-        cresid1=cresid(nrX)
+        if(nrX .gt.0) then
+         cresid1=cresid(nrX)
+        endif
 c          
         call accou(maxacc, maxown, nrX, ownmon, curown, accr, ia,
      1    ownmax, iownX, nrown1, cursa, divafL, iresTy1,icx, cresid1)

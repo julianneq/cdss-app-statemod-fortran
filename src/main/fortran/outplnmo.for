@@ -18,30 +18,26 @@ c
 c _________________________________________________________
 c       Documentation
 c
-c       iplntyp	Plan type 1 for T&C,              2 for Well_Aug, 
+c     	iplntyp	Plan type 1 for T&C,              2 for Well_Aug, 
 c                         3 Reuse_Reservoir,      4 Reuse_Diversion, 
 c                         5 Reuse_Reservoir_Tmn,  6 Reuse_Diversion_Tmn
-c                         7 TransMtn Import       8 Recharge 
-c                         9 Out-of-Priority      10 Special Augmentation
-c                        11 Accounting Plan      12 Release_Limit
+c		                  	  7 TransMtn Import       8 Recharge 
+c		                  	  9 Out-of-Priority      10 Special Augmentation
+c		                  	 11 Accounting Plan      12 Release_Limit
+c				
 c
-c 
-c       iox       =    counter for plan output sources and uses
-c       ird       =    counter for re-diversion by a type 1
-c       maxTC     =    max number of T&C outputs before failure data
-c                      note more than max is stored in last plan
-c       iplnoprE(np,nop)= Ties evaporation for a plan to a operating rule
-c       pwell     =    Pumping (depletion) in priority
+c	iox     	= counter for plan output sources and uses
+c	ird     	= counter for re-diversion by a type 1
+c	maxTC		= max number of T&C outputs before failure data
+c		  	    note more than max is stored in last plan
+c	iplnoprE(np,nop)= Ties evaporation for a plan to a operating rule
+c	pwellC		= Pumping (depletion) in priority
 c
-c       psuply(np)=    Running plan volume for this month. It 
-c                      increases or decreases based on opr rules
-c       psuplyT(np)    Total monthly plan volume this month 
+c      psuply(np)    Running plan volume for this month. It 
+c	                increases or decreases based on opr rules
+c	psuplyT(np)   Total monthly plan volume this month 
 c                      (may increase but will not decrease based on
 c                      operating rules
-c
-c rrb 2017/12/10; Document
-c       pon()     =    0 Plan off
-c                      1 Plan on
 c
 c _________________________________________________________
 c	Dimensions
@@ -109,26 +105,12 @@ c 		Step 3; Set demand or supply based on type
 c		Note iplntyp=1 for T&C, 2 for well augmentation, 3 Reuse_Reservoir,
 c                           4 Reuse_Diversion, 5 Reuse_Reservoir_Tmtn
 c                           6 Reuse_Diversion_Tmtn
-c
-c rrb 2017/12/11; Set plan location (is=ipsta(np)) even if 
-c                 the plan is turned off (pon(np) = 0
-cx        ifound=0
-cx        IF(pon(np).gt.0) then
-cx         is=ipsta(np)
-cx
-        is=ipsta(np)      
         ifound=0
         IF(pon(np).gt.0) then
-cx     
+          is=ipsta(np)
           if(ioutP.eq.1) then 
             write(nlog,*) ' '
-c smalers 2017-11-07 check for array index out of bounds
-c
-c rrb 2017/12/11; Corrected above
-cx            if (is.gt.0) then
-              write(nlog,*) ' OutPlnMo_top; ', np, is, pid(np),
-     1          cstaid(is)
-cx            endif
+            write(nlog,*) ' OutPlnMo_top; ', np, is, pid(np), cstaid(is)
           endif
           
 c
@@ -247,11 +229,7 @@ c
 c		Warn if not found
           if(ifound.eq.0) then
             write(nlog,260) np, iplntyp(np), pid(np)
-c
-c rrb 2017/12/11; Revise to allow plan data to be printed
-c                 even if the plan is not on.
-cx          goto 9999
-            goto 150
+            goto 9999
           endif  
           
         endif
@@ -419,9 +397,6 @@ c
 c _________________________________________________________ 
 c
 c		Step 9; Print results to binary file
-c
-c rrb  2017/12/11; Allow output if the plan is off (pon(np) = 0)
- 150    continue
      
         IREC=(IYR-IYSTR)*12*Nplan+(MON-1)*Nplan + np
 c        
@@ -429,14 +404,9 @@ c --------------------------------------------------------
 c
 c		a. T&C Plans        
         if(iplntyp(np).eq.1) then
-c smalers 2017-11-07 check for array index out of bounds
-c
-c rrb 2017/12/11; Corrected above
-cx        if (is.gt.0) then
-            write(68,rec=irec) pid(np), cstaid(is),
-     1        iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxTC),
-     1        cfail1, cfail2, pfail(np)     
-cx        endif
+          write(68,rec=irec) pid(np), cstaid(is),
+     1      iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxTC),
+     1      cfail1, cfail2, pfail(np)     
         endif
 c        
 c --------------------------------------------------------
@@ -445,14 +415,9 @@ c		b. Well Augmentation
         if(iplntyp(np).eq.2 .or. iplntyp(np).eq.10) then
 cr        write(nlog,*) ' OutPlnMo; irec', irec
         
-c smalers 2017-11-07 check for array index out of bounds
-c
-c rrb 2017/12/11; Corrected above
-cx          if (is.gt.0) then
-            write(68,rec=irec) pid(np), cstaid(is),
-     1        iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxAug),
-     1        cfail1, cfail2, pfail(np)
-cx          endif
+          write(68,rec=irec) pid(np), cstaid(is),
+     1      iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxAug),
+     1      cfail1, cfail2, pfail(np)
         endif
 c        
 c --------------------------------------------------------
@@ -463,26 +428,15 @@ c rrb 2006/06/07; Add OOP plans
         if(iplntyp(np).eq.3 .or. iplntyp(np).eq.5 .or.
      1     iplntyp(np).eq.9) then
      
-c smalers 2017-11-07 check for array index out of bounds
-c
-c rrb 2017/12/11; Corrected above
-cx          if (is.gt.0) then
-            write(68,rec=irec) pid(np), cstaid(is),
-     1        iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxresP),
-     1        psto1(np)/fac, psto2(np)/fac, pfail(np)        
-cx          endif
+          write(68,rec=irec) pid(np), cstaid(is),
+     1      iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxresP),
+     1      psto1(np)/fac, psto2(np)/fac, pfail(np)        
      
-          if(ioutP.eq.1) then
-c smalers 2017-11-07 check for array index out of bounds
-c
-c rrb 2017/12/11; Corrected above
-cx          if (is.gt.0) then
-            write(nlog,*) '  OutPlnMo; ',
-     1        pid(np), cstaid(is),
-     1        iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxresP),
-     1        psto1(np), psto2(np), pfail(np)        
-cx          endif
-          endif
+          if(ioutP.eq.1) write(nlog,*) '  OutPlnMo; ',
+     1      pid(np), cstaid(is),
+     1      iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxresP),
+     1      psto1(np), psto2(np), pfail(np)        
+     
         endif
 c
 c --------------------------------------------------------
@@ -494,25 +448,15 @@ cx   1     iplntyp(np).eq.12) then
      1     iplntyp(np).eq.7 .or. iplntyp(np).eq.11.or.
      1     iplntyp(np).eq.12.or. iplntyp(np).eq.13) then      
         
-c smalers 2017-11-07 check for array index out of bounds
-c
-c rrb 2017/12/11; Corrected above
-cx          if (is.gt.0) then
-            write(68,rec=irec) pid(np), cstaid(is),
-     1        iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxresPX),
-     1        cfail1, cfail2, pfail(np)
-cx          endif
+          write(68,rec=irec) pid(np), cstaid(is),
+     1      iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxresPX),
+     1      cfail1, cfail2, pfail(np)
 c
 c rrb 2008/09/02   
           if(ioutP.eq.11 .and. iplntyp(np).eq.11) then 
-c smalers 2017-11-07 check for array index out of bounds
-c
-c rrb 2017/12/11; Corrected above
-cx            if (is.gt.0) then
-              write(nlog,*) ' OutPlnMo; ', is, np, pid(np), cstaid(is),
-     1        iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxresPX),
-     1        cfail1, cfail2, pfail(np)
-cx            endif
+            write(nlog,*) ' OutPlnMo; ', is, np, pid(np), cstaid(is),
+     1      iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxresPX),
+     1      cfail1, cfail2, pfail(np)
           endif
         endif
 c
@@ -521,14 +465,9 @@ c		d. Recharge
 c        
         if(iplntyp(np).eq.8) then
         
-c smalers 2017-11-07 check for array index out of bounds
-c
-c rrb 2017/12/11; Corrected above
-cx          if (is.gt.0) then
-            write(68,rec=irec) pid(np), cstaid(is),
-     1        iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxrch),
-     1        cfail1, cfail2, pfail(np)
-cx          endif
+          write(68,rec=irec) pid(np), cstaid(is),
+     1      iyrmo(mon), xmonam(mon), (dat2(i),i=1,maxrch),
+     1      cfail1, cfail2, pfail(np)
         endif
         
 c

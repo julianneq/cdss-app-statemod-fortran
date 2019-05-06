@@ -109,9 +109,7 @@ c _________________________________________________________
 c		Step 1; Initilize
 c
       nscrn=6
-c
-c rrb 2017/12/12; Reduce output to screen     
-cx    write(nscrn,*) ' Mdainp.for'
+      write(nscrn,*) ' Mdainp.for'
       blank = '            '
       small = 0.001
       smalln=-1*small
@@ -3194,20 +3192,8 @@ c                in the IPY, STR, DDC files.  This is OK, because
 c                there is code below to jump out of this loop when the
 c                last record is read (the year changes)
 c        do nd=1,nx
-c
-c rrb 2017/12/18; Add a warning if number of records read
-c                 exceeds the read limit
-cx      do nd=1,5000
-cx
-cx rrb 2017/12/22; Revise to read an unknown number of records
-cx                 until a new year is read or and end of file
-cx                is encountered.
-cx        ndmax=5000
-cx        do nd=1,ndmax
-cx
-          nd=0
-c          
- 1700     nd=nd+1
+        do nd=1,5000
+
 c
  1701     read (14,951,end=1710,err=928) idyr,cistat,
      1                                    (diverm(im),im=1,12)
@@ -3300,21 +3286,9 @@ c             goto 9999
 
 	        endif
 c
-c rrb 2017/12/22; Revise to read an unknown number of records
-c                 until a new year is read or and end of file
-c                 is encountered.	        
-cx
-cx               End monthly IWR data read
-cx     end do
-cx
-cx rrb 2017/12/11; Warn and stop if the loop to read data is too small
-cx       write(nlog,1654) ndmax
-cx        goto 9999
-cx
-       goto 1700
-c       	      
- 1710   continue
- 
+c               End monthly IWR data read
+	      end do
+ 1710   continue	
 c
 c _________________________________________________________
 c
@@ -3776,15 +3750,6 @@ c                 but no annual time series file is provided.
      1 10x, 'Reconmend you revise variable itsfile or provide an',/
      1 10x, '  annual time series file (*.ipy).')
       goto 9999
-c
-c rrb 2017/12/11; Warn if the number of data reads is too small
- 1654 FORMAT(/,
-     1  72('_'),//  
-     1 '  Mdainp;  Warning when reading *.iwr',/
-     1 '           the number of data points read = ', i8,/
-     1 '           that is too small.  ',/
-     1 '           Reconmend you revise Mdainp.for')
-      
 C
  
  9997 write(nlog,9998) filena

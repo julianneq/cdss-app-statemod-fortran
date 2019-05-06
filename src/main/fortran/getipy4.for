@@ -105,17 +105,7 @@ c                in the IPY, STR, DDC files.  This is OK, because
 c                there is code below to jump out of this loop when the
 c                last record is read (the year changes)
 C          do nd = 1, numdiv+numdivw
-c
-c rrb 2017/12-18; Add variable to print do loop limit
-c rrb 2017/12/22; Revise to read an unknown number of records
-c                 until a new year is read or and end of file
-c                 is encountered.
-cx    do nd = 1, 5000
-c     ndmax=5000
-cx    do nd = 1, ndmax
-cx
-      nd=0
- 100  nd=nd+1
+	      do nd = 1, 5000
 	        ifound=0
           read(10,954,end=1700,err=928) idyr,cistat, (x(i), i=1,3),
      1	      AreaSF1, AreaSS1, AreaGF1, AreaGS1, Qmax, gwmode1, Atot
@@ -559,19 +549,8 @@ c
 c _________________________________________________________
 c
 c		Step 6; End diversion + well loop
-        if(iout.eq.1) write(nlog,*)'  GetIpy4; end do nd'   , nd
-c
-c rrb 2017/12/22; Revise to read an unknown number of records
-c                 until a new year is read or and end of file
-c                 is encountered.
-cx    end do 
-c
-c rrb 2017/12/11; Warn and stop if the loop to read data is too small
-cx    write(nlog,1320) ndmax
-cx    goto 9999
-
-      goto 100 
- 110  continue	    
+        if(iout.eq.1) write(nlog,*)'  GetIpy4; end do nd'   , nd  
+	    end do 
 c
 c _________________________________________________________
 c		  Return
@@ -640,14 +619,6 @@ c 954  format(i4, 1x, a12, 3f6.0, 2f8.0, f12.0, f3.0, f8.0)
      1                          '   GW Area  Tot Area     Delta'/
      1  ' ____ ____ _____________ _________ _________ _________',
      1                          ' _________ _________ _________')     
-c
-c rrb 2017/12/11; Warn if the number of data reads is too small
- 1320 FORMAT(/,
-     1  72('_'),//  
-     1 '  GetIpy4; Warning in *.ipy or *.tsp',/
-     1 '           the number of data points read = ', i8,/
-     1 '           that is too small.  ',/
-     1 '           Reconmend you revise GetIpy4.for')
      
  1322 format(i5, i5, 1x, a12,1x 20f10.2)
  

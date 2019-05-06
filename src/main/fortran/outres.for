@@ -107,9 +107,6 @@ c               Set ID screen switch
       endif
 C
       idat = 0                     
-c
-c rrb 2017/12/11; Control amount of  output
-      ix=25
 
       do 180 ip=1,nid
 
@@ -138,14 +135,8 @@ c rrb 03/08/96; handle a reservoir turned off
 c
 c rrb 10/27/94 Additional Output
         c = float(ir)/float(numres)*100.0
-c
-c rrb 2017/12/11; Control output
-        ix=ix+1
-        if(ix.ge.25) then
-          write(6,110) ir, numres, c
-          call flush(6)
-          ix=0
-        endif
+        write(6,110) ir, numres, c
+        call flush(6)
   110   format('+', '   Printing Reservoir Summary',i5,' of ', i5,
      1              '; or ',f8.0, ' % Complete', i5)
 c

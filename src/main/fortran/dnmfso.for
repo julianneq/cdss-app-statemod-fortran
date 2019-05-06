@@ -24,10 +24,6 @@ C
 C-------------------------------------------------------------------
 C
       iout=0
-c
-c rrb 2017/10/20; Variables used but not set      
-      nlog=99
-      nlogx=99
 
       if(iout.eq.1) write(99,*) '  DnmFso; In, maxsta, ndns, iscd ', 
      1  maxsta, ndns, iscd
