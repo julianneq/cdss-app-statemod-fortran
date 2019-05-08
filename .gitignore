@@ -61,4 +61,4 @@ fort.*
 *.xwr
 
 #SALib directory because it's not mine to share
-/UCRB_analysis/Analysis_scripts/Output_analysis/SALib
+/UCRB_analysis/Analysis_scripts/Output_analysis/SALib/*
