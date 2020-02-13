@@ -1,0 +1,47 @@
+WARNING: Error in initializing MVAPICH2 ptmalloc library.Continuing without InfiniBand registration cache support.
+LR_factor_mapping.py:115: RuntimeWarning: invalid value encountered in true_divide
+  historic_ratio = (historic_shortages_f_WY*100)/historic_demands_f_WY
+/opt/scipy/3.6/lib/python3.6/site-packages/scipy-1.3.0-py3.6-linux-x86_64.egg/scipy/stats/stats.py:1862: RuntimeWarning: invalid value encountered in less
+  return np.count_nonzero(a < score) / n * 100
+LR_factor_mapping.py:148: RuntimeWarning: invalid value encountered in true_divide
+  ratio = (f_shortages_WY[:,k]*100)/f_demands_WY[:,k]
+LR_factor_mapping.py:115: RuntimeWarning: invalid value encountered in true_divide
+  historic_ratio = (historic_shortages_f_WY*100)/historic_demands_f_WY
+/opt/scipy/3.6/lib/python3.6/site-packages/scipy-1.3.0-py3.6-linux-x86_64.egg/scipy/stats/stats.py:1862: RuntimeWarning: invalid value encountered in less
+  return np.count_nonzero(a < score) / n * 100
+LR_factor_mapping.py:148: RuntimeWarning: invalid value encountered in true_divide
+  ratio = (f_shortages_WY[:,k]*100)/f_demands_WY[:,k]
+LR_factor_mapping.py:115: RuntimeWarning: invalid value encountered in true_divide
+  historic_ratio = (historic_shortages_f_WY*100)/historic_demands_f_WY
+/opt/scipy/3.6/lib/python3.6/site-packages/scipy-1.3.0-py3.6-linux-x86_64.egg/scipy/stats/stats.py:1862: RuntimeWarning: invalid value encountered in less
+  return np.count_nonzero(a < score) / n * 100
+LR_factor_mapping.py:148: RuntimeWarning: invalid value encountered in true_divide
+  ratio = (f_shortages_WY[:,k]*100)/f_demands_WY[:,k]
+LR_factor_mapping.py:115: RuntimeWarning: invalid value encountered in true_divide
+  historic_ratio = (historic_shortages_f_WY*100)/historic_demands_f_WY
+/opt/scipy/3.6/lib/python3.6/site-packages/scipy-1.3.0-py3.6-linux-x86_64.egg/scipy/stats/stats.py:1862: RuntimeWarning: invalid value encountered in less
+  return np.count_nonzero(a < score) / n * 100
+LR_factor_mapping.py:148: RuntimeWarning: invalid value encountered in true_divide
+  ratio = (f_shortages_WY[:,k]*100)/f_demands_WY[:,k]
+LR_factor_mapping.py:115: RuntimeWarning: invalid value encountered in true_divide
+  historic_ratio = (historic_shortages_f_WY*100)/historic_demands_f_WY
+/opt/scipy/3.6/lib/python3.6/site-packages/scipy-1.3.0-py3.6-linux-x86_64.egg/scipy/stats/stats.py:1862: RuntimeWarning: invalid value encountered in less
+  return np.count_nonzero(a < score) / n * 100
+LR_factor_mapping.py:148: RuntimeWarning: invalid value encountered in true_divide
+  ratio = (f_shortages_WY[:,k]*100)/f_demands_WY[:,k]
+slurmstepd: *** JOB 30093146 ON comet-25-17 CANCELLED AT 2019-12-07T20:22:26 DUE TO TIME LIMIT ***
+Connection to comet-25-36 closed by remote host.
+Connection to comet-25-34 closed by remote host.
+Connection to comet-25-32 closed by remote host.
+Connection to comet-25-35 closed by remote host.
+Connection to comet-25-22 closed by remote host.
+Connection to comet-25-24 closed by remote host.
+Connection to comet-25-43 closed by remote host.
+Connection to comet-25-20 closed by remote host.
+Connection to comet-25-23 closed by remote host.
+Connection to comet-25-21 closed by remote host.
+Connection to comet-25-19 closed by remote host.
+Connection to comet-25-29 closed by remote host.
+Connection to comet-25-18 closed by remote host.
+Connection to comet-25-33 closed by remote host.
+Connection to comet-25-17 closed by remote host.

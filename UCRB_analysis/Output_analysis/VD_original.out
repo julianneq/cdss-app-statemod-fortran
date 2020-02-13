@@ -1,0 +1,18 @@
+WARNING: Error in initializing MVAPICH2 ptmalloc library.Continuing without InfiniBand registration cache support.
+slurmstepd: *** JOB 31316290 ON comet-04-48 CANCELLED AT 2020-02-03T22:57:37 DUE TO TIME LIMIT ***
+[comet-04-48.sdsc.edu:mpirun_rsh][signal_processor] Caught signal 15, killing job
+Connection to comet-16-17 closed by remote host.
+Connection to comet-16-62 closed by remote host.
+Connection to comet-19-14 closed by remote host.
+Connection to comet-16-22 closed by remote host.
+Connection to comet-16-51 closed by remote host.
+Connection to comet-16-37 closed by remote host.
+Connection to comet-16-08 closed by remote host.
+Connection to comet-16-13 closed by remote host.
+Connection to comet-19-45 closed by remote host.
+Connection to comet-16-63 closed by remote host.
+Connection to comet-19-44 closed by remote host.
+Connection to comet-16-05 closed by remote host.
+Connection to comet-16-68 closed by remote host.
+Connection to comet-04-64 closed by remote host.
+Connection to comet-04-48 closed by remote host.

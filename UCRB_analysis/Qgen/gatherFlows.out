@@ -1,0 +1,10 @@
+  File "gatherFlows.py", line 36
+    for k in range(10):       
+                             ^
+TabError: inconsistent use of tabs and spaces in indentation
+  File "gatherFlows.py", line 36
+    for k in range(10):       
+                             ^
+TabError: inconsistent use of tabs and spaces in indentation
+[comet-28-70.sdsc.edu:mpispawn_0][child_handler] MPI process (rank: 1, pid: 20678) exited with status 1
+[comet-28-70.sdsc.edu:mpispawn_0][child_handler] MPI process (rank: 0, pid: 20677) exited with status 1

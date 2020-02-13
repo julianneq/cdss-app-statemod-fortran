@@ -1,0 +1,5 @@
+/usr/bin/xauth:  error in locking authority file /home/jdq2101/.Xauthority
+/usr/bin/xauth:  error in locking authority file /home/jdq2101/.Xauthority
+/usr/bin/xauth:  error in locking authority file /home/jdq2101/.Xauthority
+/usr/bin/xauth:  error in locking authority file /home/jdq2101/.Xauthority
+WARNING: Error in initializing MVAPICH2 ptmalloc library.Continuing without InfiniBand registration cache support.
