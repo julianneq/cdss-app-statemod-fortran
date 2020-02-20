@@ -1,13 +1,13 @@
 import numpy as np
 from matplotlib import pyplot as plt
-#import statsmodels.api as sm
+import statsmodels.api as sm
 import scipy.stats as ss
-#from hmmlearn.hmm import GaussianHMM
+from hmmlearn.hmm import GaussianHMM
 import pandas as pd
 import seaborn as sns
 
-AnnualQ_h = np.loadtxt('../cm2015_StateMod/StateMod/AnnualQ.csv',delimiter=',',skiprows=1,usecols=[208])*1233.48 # convert to m^3
-MonthlyQ_h = np.loadtxt('../cm2015_StateMod/StateMod/MonthlyQ.csv',delimiter=',',skiprows=1,usecols=[208])*1233.48 # convert to m^3
+AnnualQ_h = np.loadtxt('../AnnualQ.csv',delimiter=',',skiprows=1,usecols=[208])*1233.48 # convert to m^3
+MonthlyQ_h = np.loadtxt('../MonthlyQ.csv',delimiter=',',skiprows=1,usecols=[208])*1233.48 # convert to m^3
 
 # ignore first 41 years (1909-1949)
 AnnualQ_h = AnnualQ_h[41::]
@@ -19,28 +19,34 @@ CMIPscenarios = np.loadtxt('CMIP3_CMIP5_singletrace/CMIP_monthlyQ_m3.csv',delimi
 CMIP_annual = np.zeros([64,98])
 for i in range(64):
     CMIP_annual[i,:] = np.sum(CMIPscenarios[i*12:(i+1)*12,:],0)
-'''
+
 # plot CMIP historical vs. true historical (monthly)
 l1, = plt.semilogy(MonthlyQ_h)
 l2, = plt.semilogy(CMIPscenarios[:,0])
 plt.legend([l1,l2],['Observations','VIC'])
+plt.savefig('VIC_v_Observations_Monthly.png')
+plt.clf()
 
 # plot CMIP historical vs. true historical (annual)
 l1,= plt.semilogy(range(1950,2014),AnnualQ_h)
 l2, = plt.semilogy(range(1950,2014),CMIP_annual[:,0])
 plt.legend([l1,l2],['Observations','VIC'])
-'''
+plt.savefig('VIC_v_Observations_Annual.png')
+plt.clf()
+
 # compute and plot log-space residuals (annual)
 log_resid = np.log(AnnualQ_h) - np.log(CMIP_annual[:,0])
 
-# log-space residuals divded by mean log-space prediction
+# log-space residuals divided by mean log-space prediction
 log_resid_frac = log_resid/np.mean(np.log(CMIP_annual[:,0]))
-'''
+
 # residuals vs. fitted
 plt.scatter(np.log(CMIP_annual[:,0]),log_resid_frac)
 plt.plot([np.min(np.log(CMIP_annual[:,0])),np.max(np.log(CMIP_annual[:,0]))],[0,0],c='r')
 plt.xlabel('Log-space Prediction')
 plt.ylabel('Log-space Residuals / Log-space Prediction')
+plt.savefig('LogResidualFrac_v_LogFitted.png')
+plt.clf()
 # fairly homoscedastic but biased
 
 # acf of residuals
@@ -51,9 +57,13 @@ sm.graphics.tsa.plot_acf(log_resid_frac,ax=ax1)
 sm.graphics.tsa.plot_pacf(log_resid_frac,ax=ax2)
 ax2.set_xlim([0,10])
 ax2.set_ylim([-1,1])
+plt.savefig('ACF_PACF_LogResidualFrac.png')
+plt.clf()
 
 # normal QQ of log-space residuals divded by mean log-space prediction
 sm.qqplot(log_resid_frac,ss.norm,fit=True,line='45')
+plt.savefig('LogResidualFrac_QQ.png')
+plt.clf()
 
 def norm_MC(Nyears,theoretical,dataCorr):
     rhoVector = np.zeros(10000)
@@ -77,21 +87,20 @@ p = (m-0.5)/Nyears
 norm = ss.norm.ppf(p,0,1)
 normRho = np.corrcoef((np.sort(log_resid_frac)-np.mean(log_resid_frac))/np.std(log_resid_frac),norm)[0,1]
 normSigLevel = norm_MC(Nyears, norm, normRho)
-'''
+print(normSigLevel)
+
 mu_resid = np.mean(log_resid_frac)
 std_resid = np.std(log_resid_frac)
 rho1_resid = np.corrcoef(log_resid_frac[1:],log_resid_frac[0:-1])[0,1]
 
-# take log-space CMIP simulations
-# take mean and variance of normal distribution fitted above
-# multiply by mean log-psace CMIP prediction
-# generate normal AR1 noise from that distribution and add it to log-space CMIP simulations
-# fit HMM 
-# repeat 100 times and find mean parameter estimates
+# 1) take log-space CMIP simulations
+# 2) take mean and variance of normal distribution fitted above
+# 3) multiply by mean log-space CMIP prediction
+# 4) generate normal AR1 noise from that distribution and add it to log-space CMIP simulations
+# 5) fit HMM 
+# 6) repeat 100 times and find mean parameter estimates
 def fitHMM(TransformedQ):
     
-    # fit HMM to last 2/3 of data, validate on 1st 3rd
-    #model = GaussianHMM(n_components=2, n_iter=1000).fit(np.reshape(TransformedQ[35::],[len(TransformedQ[35::]),1]))
     # fit HMM to all of data
     model = GaussianHMM(n_components=2, n_iter=1000).fit(np.reshape(TransformedQ,[len(TransformedQ),1]))
     hidden_states = model.predict(np.reshape(TransformedQ,[len(TransformedQ),1]))
@@ -100,7 +109,6 @@ def fitHMM(TransformedQ):
     P = np.array(model.transmat_)
     
     logProb = model.score(np.reshape(TransformedQ,[len(TransformedQ),1]))
-    #samples = model.sample(105)
     
     # re-organize mus, sigmas and P so that first row is lower mean (if not already)
     if mus[0] > mus[1]:
@@ -172,7 +180,7 @@ sns.pairplot(allSamples,hue='Ensemble')
 plt.savefig('CMIPmean_v_True.png')
 plt.clf()
 
-'''
+
 # repeat over all CMIP scenarios
 simParams = np.zeros([nsims,97,6])
 
@@ -195,4 +203,3 @@ meanParams = pd.DataFrame({'mu0':meanParams[:,0],'sigma0':meanParams[:,1],\
                           'mu1':meanParams[:,2],'sigma1':meanParams[:,3],\
                           'p00':meanParams[:,4],'p11':meanParams[:,5]})
 meanParams.to_csv('MeanCMIPparams.txt')
-'''

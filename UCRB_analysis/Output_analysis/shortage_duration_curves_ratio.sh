@@ -4,9 +4,9 @@
 #SBATCH --nodes=15             # specify number of nodes
 #SBATCH --ntasks-per-node=24  # specify number of core per node
 #SBATCH --export=ALL
-#SBATCH -t 1:00:00            # set max wallclock time
-#SBATCH --job-name="curves_ratio_CMIPunscaled" # name your job
-#SBATCH --output="curves_ratio_CMIPunscaled.out"
+#SBATCH -t 4:00:00            # set max wallclock time
+#SBATCH --job-name="shortage_duration_curves_ratio" # name your job
+#SBATCH --output="shortage_duration_curves_ratio.out"
 #SBATCH --mail-user=jdq2101@gmail.com
 #SBATCH --mail-type=ALL
 
@@ -15,8 +15,7 @@ module load scipy/3.6
 export MODULEPATH=/share/apps/compute/modulefiles/applications:$MODULEPATH
 module load mpi4py
 export MV2_ENABLE_AFFINITY=0
-# ibrun python3 shortage_duration_curves_ratio.py LHsamples_original_1000_AnnQonly
-# ibrun python3 shortage_duration_curves_ratio.py LHsamples_wider_1000_AnnQonly
-# ibrun python3 shortage_duration_curves_ratio.py Paleo_SOWs
-# ibrun python3 shortage_duration_curves_ratio.py CMIP_SOWs
+ibrun python3 shortage_duration_curves_ratio.py LHsamples_original_1000_AnnQonly
+ibrun python3 shortage_duration_curves_ratio.py LHsamples_wider_1000_AnnQonly
+ibrun python3 shortage_duration_curves_ratio.py Paleo_SOWs
 ibrun python3 shortage_duration_curves_ratio.py CMIPunscaled_SOWs

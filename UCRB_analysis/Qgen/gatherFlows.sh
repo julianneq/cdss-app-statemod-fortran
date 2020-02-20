@@ -2,7 +2,7 @@
 #SBATCH -D /oasis/scratch/comet/jdq2101/temp_project/Colorado/cdss-app-statemod-fortran/UCRB_analysis/Qgen
 #SBATCH --partition=compute
 #SBATCH --nodes=1             # specify number of nodes
-#SBATCH --ntasks-per-node=2  # specify number of core per node
+#SBATCH --ntasks-per-node=9  # specify number of core per node
 #SBATCH --export=ALL
 #SBATCH -t 1:00:00            # set max wallclock time
 #SBATCH --job-name="gatherFlows" # name your job

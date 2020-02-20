@@ -8,7 +8,8 @@ plt.ioff()
 # =============================================================================
 # Experiment set up
 # =============================================================================
-designs = ['LHsamples_wider_1000_AnnQonly','CMIPunscaled_SOWs'] #['LHsamples_original_1000_AnnQonly','LHsamples_wider_1000_AnnQonly','CMIP_SOWs','Paleo_SOWs']
+designs = ['LHsamples_original_1000_AnnQonly','LHsamples_wider_1000_AnnQonly',\
+           'CMIPunscaled_SOWs','Paleo_SOWs']
 
 all_IDs = np.genfromtxt('../Structures_files/metrics_structures.txt',dtype='str').tolist()
 nStructures = len(all_IDs)

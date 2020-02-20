@@ -39,7 +39,7 @@ for i in range(np.shape(MonthlyQ_all_ratios)[2]):
 # parameters: IWR, mu0, sigma0, mu1, sigma1, p00, p11
 samples = np.ones([1+8*2,8]) # base case for multipliers
 samples[:,-3:] = 0 # base case for delta shifts
-param_ranges = np.loadtxt('uncertain_params.txt',usecols=[1,2])[[0,7,8,9,10,11,12,13],:]
+param_ranges = np.loadtxt('uncertain_params_original.txt',usecols=[1,2])[[0,7,8,9,10,11,12,13],:]
 for i in range(np.shape(param_ranges)[0]):
     samples[i*2+1,i] = param_ranges[i,0]
     samples[(i+1)*2,i] = param_ranges[i,1]
@@ -173,9 +173,11 @@ for i in range(np.shape(samples)[0]):
             # select one of k nearest neighbors for each simulated year
             neighbors = np.sort(dists[j,:])[0:int(np.sqrt(np.shape(AnnualQ_h)[0]))]
             indices = np.argsort(dists[j,:])[0:int(np.sqrt(np.shape(AnnualQ_h)[0]))]
-            for k in range(1,len(probs)):
-                if random() > probs[k-1] and random() <= probs[k]:
-                    neighbor_index = indices[k-1]
+            # initiate neighbor_index
+                randnum = random()
+                for k in range(1,len(probs)):
+                    if randnum > probs[k-1] and randnum <= probs[k]:
+                        neighbor_index = indices[k-1]
            
             # use selected neighbors to downscale flows and demands each year at last node, accounting for time shift of peak
             proportions = LastNodeFractions[neighbor_index,int(np.round(samples[i,-1],0)),:]

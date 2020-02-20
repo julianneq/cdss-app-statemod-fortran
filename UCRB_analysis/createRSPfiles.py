@@ -4,10 +4,9 @@ from string import Template
 template_name = 'cm2015B_template.rsp'
 
 # Experimental designs
-designs = ['CMIPunscaled_SOWs']#['LHsamples_original_1000_AnnQonly','LHsamples_original_200_AnnQonly',\
-			#'LHsamples_narrowed_1000_AnnQonly','LHsamples_narrowed_200_AnnQonly',\
-            #'LHsamples_wider_1000_AnnQonly','LHsamples_wider_200_AnnQonly','CMIP_SOWs','Paleo_SOWs']
-nSamples = [97]#[1000, 200, 1000, 200, 1000, 200, 209, 366]
+designs = ['LHsamples_original_1000_AnnQonly','LHsamples_wider_1000_AnnQonly',\
+           'CMIP_SOWs','CMIPunscaled_SOWs','Paleo_SOWs']
+nSamples = [1000, 1000, 209, 97, 366]
 
 # create RSP files
 with open(template_name, 'r') as T:

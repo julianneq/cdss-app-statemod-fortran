@@ -9,7 +9,7 @@ original_1000 = np.load('LHsamples_original_1000_AnnQonly_flows.npy')
 #narrowed_200 = np.load('LHsamples_narrowed_200_AnnQonly_flows.npy')
 wider_1000 = np.load('LHsamples_wider_1000_AnnQonly_flows.npy')
 #wider_200 = np.load('LHsamples_wider_200_AnnQonly_flows.npy')
-CMIP = np.load('CMIP_SOWs_flows.npy')
+CMIP = np.load('CMIPunscaled_SOWs_flows.npy')
 Paleo = np.load('Paleo_SOWs_flows.npy')
 
 colors = ['#bebada','#b3de69','#fb8072','#ffffb3','#80b1d3']
@@ -38,7 +38,7 @@ handles = [handles[i] for i in ids]
 fig.subplots_adjust(bottom=0.2)
 fig.legend(handles, labels, fontsize=16,loc='lower center',ncol=3)
 ax.set_title('Streamflow across experiments',fontsize=18)
-fig.savefig('hydrographs_log_historical.png')
+fig.savefig('hydrographs_log.png')
 fig.clf()
 
 data = [np.sum(historic_data, axis=1),
@@ -64,4 +64,4 @@ ax.set_yscale( "log" )
 ax.set_ylabel('Flow at Last Node (af)',fontsize=20)
 ax.set_xticks(np.arange(1,6))
 ax.set_xticklabels(labels,fontsize=16)
-plt.savefig('streamflow_violinplot_log_historical.png')
+plt.savefig('streamflow_violinplot_log.png')

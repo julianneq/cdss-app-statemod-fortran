@@ -100,8 +100,8 @@ else:
 # Loop though all SOWs of this experimental design
 # =============================================================================
 for s in range(start, stop): # loop through SOWs
-    #for r in range(realizations): # loop through realizations
-    #    os.system('./statemod cm2015B_S' + str(s) + '_' + str(r+1) + ' -simulate') # run model
+    for r in range(realizations): # loop through realizations
+        os.system('./statemod cm2015B_S' + str(s) + '_' + str(r+1) + ' -simulate') # run model
     
     getinfo(s) # extract demand and shortage at structures of interest for this SOW in all realizations
 
