@@ -45,8 +45,8 @@ for i in range(np.shape(param_ranges)[0]):
     samples[(i+1)*2,i] = param_ranges[i,1]
 
 # load historical (_h) flow data and node locations
-MonthlyQ_h = np.array(pd.DataFrame.from_csv('MonthlyQ.csv'))
-AnnualQ_h = np.array(pd.DataFrame.from_csv('AnnualQ.csv'))
+MonthlyQ_h = np.array(pd.read_csv('MonthlyQ.csv'))
+AnnualQ_h = np.array(pd.read_csv('AnnualQ.csv'))
 logAnnualQ_h = np.log(AnnualQ_h+1) # add 1 because site 47 has years with 0 flow
 
 # get historical flow ratios
@@ -54,6 +54,7 @@ AnnualQ_h_ratios = np.zeros(np.shape(AnnualQ_h))
 for i in range(np.shape(AnnualQ_h_ratios)[0]):
     AnnualQ_h_ratios[i,:] = AnnualQ_h[i,:] / np.sum(AnnualQ_h[i,-1])
 
+# fit seasonal model to each site (model mean w/ 2 harmonics after Box-Cox transformation)
 nSites = np.shape(MonthlyQ_h)[1]
 nMonths = 12
     
@@ -90,9 +91,6 @@ piNew = np.empty([2])
 musNew_HMM = np.empty([2])
 sigmasNew_HMM = np.empty([2])
 
-# model annual flow to Lake Powell as function of annual flow at last node
-# TODO
-
 # load monthly fractions at last node under different hydrograph shifts
 LastNodeFractions = np.load('LastNodeFractions.npy')
 
@@ -100,105 +98,102 @@ LastNodeFractions = np.load('LastNodeFractions.npy')
 # generate nYears of flows at all sites for each SOW
 nYears = 105
 for i in range(np.shape(samples)[0]):
-    for realization in range(10):
-        # create matrices to store nYears of synthetic (_s), real-space (AnnualQ_s), 
-        # log space (logAnnualQ_s), z-scores (z_s) and quantiles (q_s) at all sites
-        logAnnualQ_s = np.empty([nYears]) # last node only
-        AnnualIWR_s = np.empty([nYears,nSites])
+    # create matrices to store nYears of synthetic (_s), real-space (AnnualQ_s), 
+    # log space (logAnnualQ_s), z-scores (z_s) and quantiles (q_s) at all sites
+    logAnnualQ_s = np.empty([nYears]) # last node only
+    AnnualIWR_s = np.empty([nYears,nSites])
+    
+    # calculate new transition matrix and stationary distribution of SOW at last node
+    # as well as new means and standard deviations
+    Pnew[0,0] = max(0.0,min(1.0,P[0,0]+samples[i,5]))
+    Pnew[1,1] = max(0.0,min(1.0,P[1,1]+samples[i,6]))
+    Pnew[0,1] = 1 - Pnew[0,0]
+    Pnew[1,0] = 1 - Pnew[1,1]
+    eigenvals, eigenvecs = np.linalg.eig(np.transpose(Pnew))
+    one_eigval = np.argmin(np.abs(eigenvals-1))
+    piNew = np.dot(np.transpose(Pnew),eigenvecs[:,one_eigval]) / \
+        np.sum(np.dot(np.transpose(Pnew),eigenvecs[:,one_eigval]))
+            
+    musNew_HMM[0] = mus_HMM[0] * samples[i,1]
+    musNew_HMM[1] = mus_HMM[1] * samples[i,3]
+    sigmasNew_HMM[0] = sigmas_HMM[0] * samples[i,2]
+    sigmasNew_HMM[1] = sigmas_HMM[1] * samples[i,4]
+    
+    # generate first state and log-space annual flow at last node
+    states = np.empty([nYears])
+    if random() <= piNew[0]:
+        states[0] = 0
+        logAnnualQ_s[0] = ss.norm.rvs(musNew_HMM[0], sigmasNew_HMM[0])
+    else:
+        states[0] = 1
+        logAnnualQ_s[0] = ss.norm.rvs(musNew_HMM[1], sigmasNew_HMM[1])
         
-        # calculate new transition matrix and stationary distribution of SOW at last node
-        # as well as new means and standard deviations
-        Pnew[0,0] = max(0.0,min(1.0,P[0,0]+samples[i,5]))
-        Pnew[1,1] = max(0.0,min(1.0,P[1,1]+samples[i,6]))
-        Pnew[0,1] = 1 - Pnew[0,0]
-        Pnew[1,0] = 1 - Pnew[1,1]
-        eigenvals, eigenvecs = np.linalg.eig(np.transpose(Pnew))
-        one_eigval = np.argmin(np.abs(eigenvals-1))
-        piNew = eigenvecs[:,one_eigval] / np.sum(eigenvecs[:,one_eigval])
-                
-        musNew_HMM[0] = mus_HMM[0] * samples[i,1]
-        musNew_HMM[1] = mus_HMM[1] * samples[i,3]
-        sigmasNew_HMM[0] = sigmas_HMM[0] * samples[i,2]
-        sigmasNew_HMM[1] = sigmas_HMM[1] * samples[i,4]
-                
-        # generate first state and log-space annual flow at last node
-        states = np.empty([nYears])
-        if random() <= piNew[0]:
-            states[0] = 0
-            logAnnualQ_s[0] = ss.norm.rvs(musNew_HMM[0], sigmasNew_HMM[0])
+    # generate remaining state trajectory and log space flows at last node
+    for j in range(1,nYears):
+        if random() <= Pnew[int(states[j-1]),int(states[j-1])]:
+            states[j] = states[j-1]
         else:
-            states[0] = 1
-            logAnnualQ_s[0] = ss.norm.rvs(musNew_HMM[1], sigmasNew_HMM[1])
+            states[j] = 1 - states[j-1]
             
-        # generate remaining state trajectory and log space flows at last node
-        for j in range(1,nYears):
-            if random() <= Pnew[int(states[j-1]),int(states[j-1])]:
-                states[j] = states[j-1]
+        if states[j] == 0:
+            logAnnualQ_s[j] = ss.norm.rvs(musNew_HMM[0], sigmasNew_HMM[0])
+        else:
+            logAnnualQ_s[j] = ss.norm.rvs(musNew_HMM[1], sigmasNew_HMM[1])
+            
+    # convert log-space flows to real-space flows
+    AnnualQ_s = np.exp(logAnnualQ_s)-1
+    
+    # calculate annual IWR anomalies based on annual flow anomalies at last node
+    TotalAnnualIWRanomalies_s = BetaIWR*(AnnualQ_s-np.mean(AnnualQ_s)) + \
+        ss.norm.rvs(muIWR, sigmaIWR,len(AnnualQ_s))
+    TotalAnnualIWR_s = np.mean(IWRsums_h)*samples[i,0] + TotalAnnualIWRanomalies_s
+    AnnualIWR_s = np.dot(np.reshape(TotalAnnualIWR_s,[np.size(TotalAnnualIWR_s),1]), \
+                                 np.reshape(IWRfractions_h,[1,np.size(IWRfractions_h)]))
+    
+    MonthlyQ_s = np.zeros([nYears,nSites,12])
+    MonthlyIWR_s = np.zeros([nYears,np.shape(MonthlyIWR_h)[1],12])
+        
+    # disaggregate annual flows and demands at all sites using randomly selected neighbor from k nearest based on flow
+    dists = np.zeros([nYears,np.shape(AnnualQ_h)[0]])
+    for j in range(nYears):
+        for m in range(np.shape(AnnualQ_h)[0]):
+            dists[j,m] = dists[j,m] + (AnnualQ_s[j] - AnnualQ_h[m,-1])**2
+                
+    probs = np.zeros([int(np.sqrt(np.shape(AnnualQ_h)[0]))])
+    for j in range(len(probs)):
+        probs[j] = 1/(j+1)
+        
+    probs = probs / np.sum(probs)
+    for j in range(len(probs)-1):
+        probs[j+1] = probs[j] + probs[j+1]
+        
+    probs = np.insert(probs, 0, 0)   
+    MonthlyQ_s = np.zeros([nYears,nSites,12])
+    MonthlyIWR_s = np.zeros([nYears,np.shape(MonthlyIWR_h)[1],12])
+    for j in range(nYears):
+        # select one of k nearest neighbors for each simulated year
+        neighbors = np.sort(dists[j,:])[0:int(np.sqrt(np.shape(AnnualQ_h)[0]))]
+        indices = np.argsort(dists[j,:])[0:int(np.sqrt(np.shape(AnnualQ_h)[0]))]
+        for k in range(1,len(probs)):
+            if random() > probs[k-1] and random() <= probs[k]:
+                neighbor_index = indices[k-1]
+       
+        # use selected neighbors to downscale flows and demands each year at last node, accounting for time shift of peak
+        proportions = LastNodeFractions[neighbor_index,int(np.round(samples[i,-1],0)),:]
+        MonthlyQ_s[j,-1,:] = proportions*AnnualQ_s[j]
+        
+        # find monthly flows at all other sites each year
+        for k in range(12):
+            MonthlyQ_s[j,:,k] = MonthlyQ_all_ratios[neighbor_index,k,:]*MonthlyQ_s[j,-1,k]
+        
+        for k in range(np.shape(MonthlyIWR_h)[1]):
+            if np.sum(MonthlyIWR_h[neighbor_index*12:(neighbor_index+1)*12,k]) > 0:
+                proportions = MonthlyIWR_h[neighbor_index*12:(neighbor_index+1)*12,k] / \
+                    np.sum(MonthlyIWR_h[neighbor_index*12:(neighbor_index+1)*12,k])
             else:
-                states[j] = 1 - states[j-1]
-                
-            if states[j] == 0:
-                logAnnualQ_s[j] = ss.norm.rvs(musNew_HMM[0], sigmasNew_HMM[0])
-            else:
-                logAnnualQ_s[j] = ss.norm.rvs(musNew_HMM[1], sigmasNew_HMM[1])
-                
-        # convert log-space flows to real-space flows
-        AnnualQ_s = np.exp(logAnnualQ_s)-1
-        
-        # calculate annual IWR anomalies based on annual flow anomalies at last node
-        TotalAnnualIWRanomalies_s = BetaIWR*(AnnualQ_s-np.mean(AnnualQ_s)) + \
-            ss.norm.rvs(muIWR, sigmaIWR,len(AnnualQ_s))
-        TotalAnnualIWR_s = np.mean(IWRsums_h)*samples[i,0] + TotalAnnualIWRanomalies_s
-        AnnualIWR_s = np.dot(np.reshape(TotalAnnualIWR_s,[np.size(TotalAnnualIWR_s),1]), \
-                                     np.reshape(IWRfractions_h,[1,np.size(IWRfractions_h)]))
-        
-        # disaggregate annual flows and demands at all sites using randomly selected neighbor from k nearest based on flow
-        dists = np.zeros([nYears,np.shape(AnnualQ_h)[0]])
-        for j in range(nYears):
-            for m in range(np.shape(AnnualQ_h)[0]):
-                dists[j,m] = dists[j,m] + (AnnualQ_s[j] - AnnualQ_h[m,-1])**2
-                    
-        probs = np.zeros([int(np.sqrt(np.shape(AnnualQ_h)[0]))])
-        for j in range(len(probs)):
-            probs[j] = 1/(j+1)
+                proportions = np.zeros([12])
             
-        probs = probs / np.sum(probs)
-        for j in range(len(probs)-1):
-            probs[j+1] = probs[j] + probs[j+1]
+            MonthlyIWR_s[j,k,:] = proportions*AnnualIWR_s[j,k]
             
-        probs = np.insert(probs, 0, 0)   
-        MonthlyQ_s = np.zeros([nYears,nSites,12])
-        MonthlyIWR_s = np.zeros([nYears,np.shape(MonthlyIWR_h)[1],12])
-        for j in range(nYears):
-            # select one of k nearest neighbors for each simulated year
-            neighbors = np.sort(dists[j,:])[0:int(np.sqrt(np.shape(AnnualQ_h)[0]))]
-            indices = np.argsort(dists[j,:])[0:int(np.sqrt(np.shape(AnnualQ_h)[0]))]
-            # initiate neighbor_index
-                randnum = random()
-                for k in range(1,len(probs)):
-                    if randnum > probs[k-1] and randnum <= probs[k]:
-                        neighbor_index = indices[k-1]
-           
-            # use selected neighbors to downscale flows and demands each year at last node, accounting for time shift of peak
-            proportions = LastNodeFractions[neighbor_index,int(np.round(samples[i,-1],0)),:]
-            MonthlyQ_s[j,-1,:] = proportions*AnnualQ_s[j]
-            
-            # find monthly flows at all other sites each year
-            for k in range(12):
-                MonthlyQ_s[j,:,k] = MonthlyQ_all_ratios[neighbor_index,k,:]*MonthlyQ_s[j,-1,k]
-            
-            for k in range(np.shape(MonthlyIWR_h)[1]):
-                if np.sum(MonthlyIWR_h[neighbor_index*12:(neighbor_index+1)*12,k]) > 0:
-                    proportions = MonthlyIWR_h[neighbor_index*12:(neighbor_index+1)*12,k] / \
-                        np.sum(MonthlyIWR_h[neighbor_index*12:(neighbor_index+1)*12,k])
-                else:
-                    proportions = np.zeros([12])
-                
-                MonthlyIWR_s[j,k,:] = proportions*AnnualIWR_s[j,k]
-                
-        #np.save('Sample' + str(i+1) + '_Flows_logspace.npy',MonthlyQ_s)
-        #np.save('Sample' + str(i+1) + '_IWRdemands_logspace.npy',MonthlyIWR_s)
-        writeNewFiles('cm2015x.xbm', 16, i, realization+1, MonthlyQ_s, '')
-        
-        # write new irrigation demands to file for LHsample i
-        writeNewFiles('cm2015B.iwr', 463, i, realization+1, MonthlyIWR_s, 'f') # f for flow only (a = all uncertainties)
+    np.save('Sample' + str(i+1) + '_Flows_logspace.npy',MonthlyQ_s)
+    np.save('Sample' + str(i+1) + '_IWRdemands_logspace.npy',MonthlyIWR_s)
