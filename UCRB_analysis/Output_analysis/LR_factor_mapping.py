@@ -55,6 +55,14 @@ for i in range(np.shape(HMMparams)[0]):
         newParams = np.array([[mu0, std0, mu1, std1, p00, p11]])
         LHsamples[i,:] = convertParamsToMult(newParams)
 
+# remove samples no longer in param_bounds
+rows_to_keep = np.intersect1d(np.where(LHsamples[:,0]>=0)[0],np.where(LHsamples[:,0]<=0)[0])
+for i in range(params_no):
+    within_rows = np.intersect1d(np.where(LHsamples[:,i] > param_bounds[i][0])[0], np.where(LHsamples[:,i] < param_bounds[i][1])[0])
+    rows_to_keep = np.union1d(rows_to_keep,within_rows)
+
+LHsamples = LHsamples[rows_to_keep,:]
+
 realizations = 10
 if design == 'LHsamples_original_1000_AnnQonly' or design == 'LHsamples_original_200_AnnQonly':
     param_bounds=np.loadtxt('../Qgen/uncertain_params_original.txt', usecols=(1,2))[7:13,:]
@@ -105,7 +113,7 @@ def plotfailureheatmap(ID):
         
         for j in range(len(LHsamples[:,0])):
             data= np.loadtxt('../../../'+design+'/Infofiles/' +\
-                             ID + '/' + ID + '_streamflow_' + str(j+1) + '.txt')[:,1:]
+                             ID + '/' + ID + '_streamflow_' + str(rows_to_keep[j]+1) + '.txt')[:,1:]
             streamflow[:,j*realizations:j*realizations+realizations]=data
         
         streamflowhistoric = np.loadtxt('../../../LHsamples_original_1000_AnnQonly/Infofiles/' +\
@@ -150,12 +158,12 @@ def plotfailureheatmap(ID):
         shortages = np.zeros([nMonths,len(LHsamples[:,0])*realizations])
         demands = np.zeros([nMonths,len(LHsamples[:,0])*realizations])
         for j in range(len(LHsamples[:,0])):
-            data= np.loadtxt('../../../'+design+'/Infofiles/' +  ID + '/' + ID + '_info_' + str(j+1) + '.txt')
+            data= np.loadtxt('../../../'+design+'/Infofiles/' +  ID + '/' + ID + '_info_' + str(rows_to_keep[j]+1) + '.txt')
             try:
                 demands[:,j*realizations:j*realizations+realizations]=data[:,idx_demand]
                 shortages[:,j*realizations:j*realizations+realizations]=data[:,idx_shortage]
             except:
-                print('problem with ' + ID + '_info_' + str(j+1))
+                print('problem with ' + ID + '_info_' + str(rows_to_keep[j]+1))
                 
         #Reshape into water years
         #Create matrix of [no. years x no. months x no. experiments]
@@ -408,4 +416,4 @@ else:
     
 # Run simulation
 for i in range(start, stop):
-    factor_mapping(all_IDs[i])
+	factor_mapping(all_IDs[i])

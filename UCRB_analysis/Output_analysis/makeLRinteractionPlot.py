@@ -54,6 +54,14 @@ for i in range(np.shape(HMMparams)[0]):
         p11 = HMMparams[i,4]
         newParams = np.array([[mu0, std0, mu1, std1, p00, p11]])
         LHsamples[i,:] = convertParamsToMult(newParams)
+
+# remove samples no longer in param_bounds
+rows_to_keep = np.intersect1d(np.where(LHsamples[:,0]>=0)[0],np.where(LHsamples[:,0]<=0)[0])
+for i in range(params_no):
+    within_rows = np.intersect1d(np.where(LHsamples[:,i] > param_bounds[i][0])[0], np.where(LHsamples[:,i] < param_bounds[i][1])[0])
+    rows_to_keep = np.union1d(rows_to_keep,within_rows)
+
+LHsamples = LHsamples[rows_to_keep,:]
         
 CMIPsamples = np.loadtxt('../Qgen/CMIPunscaled_SOWs.txt')[:,7:13]
 PaleoSamples = np.loadtxt('../Qgen/Paleo_SOWs.txt')[:,7:13]
@@ -226,7 +234,7 @@ def factor_mapping(ID):
                     cbar.ax.set_yticklabels(yticklabels,fontsize=10)
                     fig.set_size_inches([14.5,8])
                     fig.suptitle('Probability of not having a '+ str(magnitudes[h]) +\
-                                 ' shortage ' +  str(frequencies[j]) + '% of the time for '+ ID)
+                                 ' shortage ' +  str(int(historic_percents[h])) + '% of the time for '+ ID)
                     fig.savefig('../../../'+design+'/Factor_mapping/LR_contours/'+\
                                 ID+'/'+str(int(historic_percents[h]))+'yrsw'+str(magnitudes[h])+'pcshortm_interact.png')
                     plt.close()
@@ -242,7 +250,7 @@ def factor_mapping(ID):
                     cbar.ax.set_yticklabels(yticklabels,fontsize=10)
                     fig.set_size_inches([14.5,8])
                     fig.suptitle('Probability of not having a '+ str(magnitudes[h]) +\
-                                 ' shortage ' +  str(frequencies[j]) + '% of the time for '+ ID)
+                                 ' shortage ' +  str(int(historic_percents[h])) + '% of the time for '+ ID)
                     fig.savefig('../../../'+design+'/Factor_mapping/LR_contours/'+\
                                 ID+'/'+str(int(historic_percents[h]))+'yrsw'+str(magnitudes[h])+'pcshortm_interact_SOWs.png')
                     plt.close()

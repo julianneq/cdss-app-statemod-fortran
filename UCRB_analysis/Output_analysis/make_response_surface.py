@@ -2,13 +2,13 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import scipy.stats
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 import itertools
 from mpi4py import MPI
 import math
 import sys
-sys.path.append('../')
-from SALib.analyze import delta
 plt.ioff()
 
 design = str(sys.argv[1])
@@ -61,6 +61,8 @@ for i in range(params_no):
 
 LHsamples = LHsamples[rows_to_keep,:]
 
+CMIPsamples = np.loadtxt('../Qgen/CMIPunscaled_SOWs.txt')[:,7:13]
+PaleoSamples = np.loadtxt('../Qgen/Paleo_SOWs.txt')[:,7:13]
 if design == 'LHsamples_original_1000_AnnQonly' or design == 'LHsamples_original_200_AnnQonly':
     param_bounds=np.loadtxt('../Qgen/uncertain_params_original.txt', usecols=(1,2))[7:13,:]
 elif design == 'LHsamples_narrowed_1000_AnnQonly' or design == 'LHsamples_narrowed_200_AnnQonly':
@@ -84,9 +86,8 @@ problem = {
     'names': param_names,
     'bounds': param_bounds.tolist()
 }
-percentiles = np.arange(0,100)
-#all_IDs = np.genfromtxt('../Structures_files/metrics_structures.txt',dtype='str').tolist() 
-all_IDs = np.genfromtxt('../Structures_files/unfinished_structures.txt',dtype='str').tolist() 
+percentiles = np.arange(10, 110, 10)
+all_IDs = np.genfromtxt('../Structures_files/metrics_structures.txt',dtype='str').tolist() 
 nStructures = len(all_IDs)
 
 # deal with fact that calling result.summary() in statsmodels.api
@@ -102,8 +103,6 @@ HIS_short = np.loadtxt('../../../'+design+'/Infofiles/7202003/7202003_info_hist.
 # replace failed runs with np.nan (currently -999.9)
 HIS_short[HIS_short < 0] = np.nan
 
-np.save('LHsamples_repeat.npy',np.repeat(LHsamples, realizations, axis = 0))
-
 def shortage_duration(sequence):
     cnt_shrt = [sequence[i]>0 for i in range(len(sequence))] # Returns a list of True values when there's a shortage
     shrt_dur = [ sum( 1 for _ in group ) for key, group in itertools.groupby( cnt_shrt ) if key ] # Counts groups of True values
@@ -113,22 +112,62 @@ def fitOLS(dta, predictors):
     # concatenate intercept column of 1s
     dta['Intercept'] = np.ones(np.shape(dta)[0])
     # get columns of predictors
-    cols = dta.columns.tolist()[-1:] + predictors
+    cols = dta.columns.tolist()[-1:] + predictors + ['Interaction']
     #fit OLS regression
-    ols = sm.OLS(dta['Shortage'], dta[cols])
+    ols = sm.OLS(np.log(dta['Shortage']+0.0001), dta[cols])
     result = ols.fit()
     return result
 
-def sensitivity_analysis_per_structure(ID):
+def plotContourMap(ax, result, dta, contour_cmap, dot_cmap, xgrid, ygrid, \
+    xvar, yvar):
+ 
+    # find probability of success for x=xgrid, y=ygrid
+    X, Y = np.meshgrid(xgrid, ygrid)
+    x = X.flatten()
+    y = Y.flatten()
+    grid = np.column_stack([np.ones(len(x)),x,y,x*y])
+ 
+    z = np.exp(result.predict(grid))-0.0001
+    Z = np.reshape(z, np.shape(X))
+    norm = mpl.colors.Normalize(np.min(z), np.max(z))
+
+    contourset = ax.contourf(X, Y, Z, cmap=contour_cmap, norm=norm)
+    ax.scatter(dta[xvar].values, dta[yvar].values, c=dta['Shortage'].values, edgecolor='none', cmap=dot_cmap, norm=norm)
+    ax.set_xlim(0.99*np.nanmin(X),1.01*np.nanmax(X))
+    ax.set_ylim(0.99*np.nanmin(Y),1.01*np.nanmax(Y))
+    ax.set_xlabel(xvar,fontsize=10)
+    ax.set_ylabel(yvar,fontsize=10)
+    ax.tick_params(axis='both',labelsize=6)
+    return contourset
+
+def plotContourSOWmap(ax, result, CMIP, Paleo, contour_cmap, xgrid, ygrid, \
+    xvar, yvar):
+ 
+    # find probability of success for x=xgrid, y=ygrid
+    X, Y = np.meshgrid(xgrid, ygrid)
+    x = X.flatten()
+    y = Y.flatten()
+    grid = np.column_stack([np.ones(len(x)),x,y,x*y])
+ 
+    z = np.exp(result.predict(grid))-0.0001
+    Z = np.reshape(z, np.shape(X))
+    norm = mpl.colors.Normalize(np.min(z), np.max(z))
+
+    contourset = ax.contourf(X, Y, Z, cmap=contour_cmap, norm=norm)
+    ax.scatter(CMIP[xvar].values, CMIP[yvar].values, c='#ffffb3', edgecolor='none')
+    ax.scatter(Paleo[xvar].values, Paleo[yvar].values, c='#b3de69', edgecolor='none')
+    ax.set_xlim(0.99*np.nanmin(X),1.01*np.nanmax(X))
+    ax.set_ylim(0.99*np.nanmin(Y),1.01*np.nanmax(Y))
+    ax.set_xlabel(xvar,fontsize=10)
+    ax.set_ylabel(yvar,fontsize=10)
+    ax.tick_params(axis='both',labelsize=6)
+    return contourset
+
+def make_response_surface(ID):
     '''
     Perform analysis for shortage magnitude
     '''
-    DELTA = pd.DataFrame(np.zeros((params_no, len(percentiles))), columns = percentiles)
-    DELTA_conf = pd.DataFrame(np.zeros((params_no, len(percentiles))), columns = percentiles)
-    S1 = pd.DataFrame(np.zeros((params_no, len(percentiles))), columns = percentiles)
-    S1_conf = pd.DataFrame(np.zeros((params_no, len(percentiles))), columns = percentiles)
     R2_scores = pd.DataFrame(np.zeros((params_no, len(percentiles))), columns = percentiles)
-    DELTA.index=DELTA_conf.index=S1.index=S1_conf.index = R2_scores.index = param_names
     SYN_short = np.zeros([len(HIS_short), samples * realizations])
     for j in range(samples):
         data= np.loadtxt('../../../'+design+'/Infofiles/' +  ID + '/' + ID + '_info_' + str(rows_to_keep[j]+1) + '.txt')
@@ -151,90 +190,58 @@ def sensitivity_analysis_per_structure(ID):
     syn_magnitude = np.zeros([len(percentiles),samples*realizations])
     for j in range(samples*realizations):
         syn_magnitude[:,j]=[np.percentile(f_SYN_short_WY[:,j], i) for i in percentiles]
-    
-    # Delta Method analysis
-    for i in range(len(percentiles)):
-        if syn_magnitude[i,:].any():
-            try:
-                result= delta.analyze(problem, np.repeat(LHsamples, realizations, axis = 0), syn_magnitude[i,:], print_to_console=False, num_resamples=2)
-                DELTA[percentiles[i]]= result['delta']
-                DELTA_conf[percentiles[i]] = result['delta_conf']
-                S1[percentiles[i]]=result['S1']
-                S1_conf[percentiles[i]]=result['S1_conf']
-            except:
-                pass
 
-    S1.to_csv('../../../'+design+'/Magnitude_Sensitivity_analysis/'+ ID + '_S1.csv')
-    S1_conf.to_csv('../../../'+design+'/Magnitude_Sensitivity_analysis/'+ ID + '_S1_conf.csv')
-    DELTA.to_csv('../../../'+design+'/Magnitude_Sensitivity_analysis/'+ ID + '_DELTA.csv')
-    DELTA_conf.to_csv('../../../'+design+'/Magnitude_Sensitivity_analysis/'+ ID + '_DELTA_conf.csv')
+    # define color map for shortage contours
+    dot_cmap = mpl.cm.get_cmap('RdBu_r')
+    contour_cmap = mpl.cm.get_cmap('RdBu_r')
+    CMIP = pd.DataFrame(data = np.repeat(CMIPsamples, realizations, axis = 0), columns=param_names)
+    Paleo = pd.DataFrame(data = np.repeat(PaleoSamples, realizations, axis = 0), columns=param_names)
 
     # OLS regression analysis
     dta = pd.DataFrame(data = np.repeat(LHsamples, realizations, axis = 0), columns=param_names)
     for i in range(len(percentiles)):
         dta['Shortage']=syn_magnitude[i,:]
-        for m in range(params_no):
-            predictors = dta.columns.tolist()[m:(m+1)]
+        # find two most informative predictors
+        R2_scores = pd.read_csv('../../../'+design+'/Magnitude_Sensitivity_analysis/'+ ID + '_R2.csv')
+        percentile_scores = R2_scores[str(int(percentiles[i]-1))]
+        if percentile_scores[0] > 0:
+            top_two = list(np.argsort(percentile_scores)[4::]) # sorts from lowest to highest so take last two
+            predictors = list([param_names[top_two[1]],param_names[top_two[0]]])
+            dta['Interaction'] = dta[predictors[0]]*dta[predictors[1]]
             result = fitOLS(dta, predictors)
-            R2_scores.at[param_names[m],percentiles[i]]=result.rsquared
-    R2_scores.to_csv('../../../'+design+'/Magnitude_Sensitivity_analysis/'+ ID + '_R2.csv')
-    
-#    '''
-#    Perform analysis for shortage duration
-#     This didn't really work and need to double check. No values whatsoever.
-#    '''
-#    DELTA = pd.DataFrame(np.zeros(params_no))
-#    DELTA_conf = pd.DataFrame(np.zeros(params_no))
-#    S1 = pd.DataFrame(np.zeros(params_no))
-#    S1_conf = pd.DataFrame(np.zeros(params_no))
-#    R2_scores = pd.DataFrame(np.zeros(params_no))
-#    DELTA.index=DELTA_conf.index=S1.index=S1_conf.index = R2_scores.index = param_names
-#
-#    d_synth = np.zeros([int(len(HIS_short)/2),samples*realizations]) #int(len(HIS_short)/2) is the max number of non-consecutive shortages
-#    for j in range(samples*realizations):
-#        durations = shortage_duration(SYN_short[:,j])
-#        d_synth[:,j] = np.pad(durations, (0,int(len(HIS_short)/2-len(durations))),'constant', constant_values=(0)) # this pads the array to have all of them be the same length
-#
-#    # Delta Method analysis
-#    try:
-#        result= delta.analyze(problem, np.repeat(LHsamples, realizations, axis = 0), d_synth, print_to_console=False)
-#        DELTA=result['delta']
-#        DELTA_conf=result['delta_conf']
-#        S1=result['S1']
-#        S1_conf=result['S1_conf']
-#    except:
-#        DELTA = DELTA
-#        DELTA_conf=DELTA_conf
-#        S1=S1
-#        S1_conf=S1_conf
-#    S1.to_csv('../'+design+'/Duration_Sensitivity_analysis/'+ ID + '_S1.csv')
-#    S1_conf.to_csv('../'+design+'/Duration_Sensitivity_analysis/'+ ID + '_S1_conf.csv')
-#    DELTA.to_csv('../'+design+'/Duration_Sensitivity_analysis/'+ ID + '_DELTA.csv')
-#    DELTA_conf.to_csv('../'+design+'/Duration_Sensitivity_analysis/'+ ID + '_DELTA_conf.csv')
-#
-#    # OLS regression analysis
-#    dta = pd.DataFrame(data = np.repeat(LHsamples, realizations, axis = 0), columns=param_names)
-#    #Perform for mean duration
-#    dta['Shortage']=np.nanmean(d_synth, axis = 0)
-#    for m in range(params_no):
-#        predictors = dta.columns.tolist()[m:(m+1)]
-#        result = fitOLS(dta, predictors)
-#        R2_scores.at[param_names[m],0]=result.rsquared
-#    R2_scores.to_csv('../'+design+'/Duration_Sensitivity_analysis/'+ ID + '_mean_R2.csv')
-#    #Perform for median duration
-#    dta['Shortage']=np.nanmedian(d_synth, axis = 0)
-#    for m in range(params_no):
-#        predictors = dta.columns.tolist()[m:(m+1)]
-#        result = fitOLS(dta, predictors)
-#        R2_scores.at[param_names[m],0]=result.rsquared
-#    R2_scores.to_csv('../'+design+'/Duration_Sensitivity_analysis/'+ ID + '_median_R2.csv')
-#    #Perform for max duration
-#    dta['Shortage']=np.nanmax(d_synth, axis = 0)
-#    for m in range(params_no):
-#        predictors = dta.columns.tolist()[m:(m+1)]
-#        result = fitOLS(dta, predictors)
-#        R2_scores.at[param_names[m],0]=result.rsquared
-#    R2_scores.to_csv('../'+design+'/Duration_Sensitivity_analysis/'+ ID + '_max_R2.csv')
+            fig, axes = plt.subplots(1,1)
+            xgrid = np.arange(param_bounds[top_two[1]][0], param_bounds[top_two[1]][1], \
+            	    np.around((param_bounds[top_two[1]][1]-param_bounds[top_two[1]][0])/100,decimals=4))
+            ygrid = np.arange(param_bounds[top_two[0]][0], param_bounds[top_two[0]][1], \
+            	    np.around((param_bounds[top_two[0]][1]-param_bounds[top_two[0]][0])/100,decimals=4))
+            contourset = plotContourMap(axes, result, dta, contour_cmap, dot_cmap, \
+            	xgrid, ygrid, predictors[0], predictors[1])
+            cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+            cbar = fig.colorbar(contourset, cax=cbar_ax)
+            cbar_ax.set_ylabel('Shortage',fontsize=12)
+            yticklabels = cbar.ax.get_yticklabels()
+            cbar.ax.set_yticklabels(yticklabels,fontsize=10)
+            fig.set_size_inches([14.5,8])
+            fig.suptitle(str(int(percentiles[i])) + 'th percentile shortage for '+ ID)
+            fig.savefig('../../../'+design+'/Factor_mapping/ResponseSurfaces/'+\
+                        ID+'/'+str(int(percentiles[i]))+'th_percentile_shortage.png')
+            plt.close()
+
+            fig, axes = plt.subplots(1,1)
+            contourset = plotContourSOWmap(axes, result, CMIP, Paleo, contour_cmap, \
+                        xgrid, ygrid, predictors[0], predictors[1])
+            cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+            cbar = fig.colorbar(contourset, cax=cbar_ax)
+            cbar_ax.set_ylabel('Shortage',fontsize=12)
+            yticklabels = cbar.ax.get_yticklabels()
+            cbar.ax.set_yticklabels(yticklabels,fontsize=10)
+            fig.set_size_inches([14.5,8])
+            fig.suptitle(str(int(percentiles[i])) + 'th percentile shortage for '+ ID)
+            fig.savefig('../../../'+design+'/Factor_mapping/ResponseSurfaces/'+\
+                        ID+'/'+str(int(percentiles[i]))+'th_percentile_shortage_SOWs.png')
+            plt.close()
+
+    return None
 
 # =============================================================================
 # Start parallelization (running each structure in parallel)
@@ -261,4 +268,4 @@ else:
 
 # Run simulation
 for k in range(start, stop):
-    sensitivity_analysis_per_structure(all_IDs[k])
+    make_response_surface(all_IDs[k])

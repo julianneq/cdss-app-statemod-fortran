@@ -48,12 +48,12 @@ def plotSDC(ax, synthetic, histData, nsamples):
     p=np.arange(100,-10,-10)
     
     #Calculate synthetic shortage duration curves
-    F_syn = np.empty([int(np.size(histData)/n),nsamples])
+    F_syn = np.empty([int(np.size(histData)/n),nsamples*nrealizations])
     F_syn[:] = np.NaN
-    for j in range(nsamples):
+    for j in range(nsamples*nrealizations):
         F_syn[:,j] = np.sort(synthetic_global_totals[:,j])
     
-    # For each percentile of magnitude, calculate the percentile among the experiments ran
+    # For each percentile of magnitude, calculate the percentile among the experiments run
     perc_scores = np.zeros_like(F_syn) 
     for m in range(int(np.size(histData)/n)):
         perc_scores[m,:] = [stats.percentileofscore(F_syn[m,:], j, 'rank') for j in F_syn[m,:]]
@@ -108,7 +108,7 @@ for structure in structures:
             ax.set_ylim(0,5000)
         else:
             ax.tick_params(axis='x',labelsize=14)
-            ax.set_ylim(0,260000)
+            ax.set_ylim(0,300000)
             
         # iterature subplot counter
         count += 1

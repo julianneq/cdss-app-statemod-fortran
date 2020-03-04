@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Feb 23 23:56:36 2020
-
-@author: Julianne Quinn
-"""
+import numpy as np
+from matplotlib import pyplot as plt
+import pandas as pd
+import seaborn as sns
 
