@@ -2,6 +2,7 @@
 from scipy import stats as ss
 import numpy as np
 import pandas as pd
+import math
 from SALib.analyze import delta
 import statsmodels.api as sm
 '''
@@ -31,6 +32,9 @@ def findQuantiles(mus, sigmas, piNew):
         
     return x, qx
 
+def roundup(x):
+    return int(math.ceil(x / 10.0)) * 10
+
 def convertMultToParams(multipliers):
     '''convert streamflow multipliers/deltas in LHsamples to HMM parameter values'''
     params = np.zeros(np.shape(multipliers))
@@ -55,37 +59,7 @@ def convertParamsToMult(params):
     
     return multipliers
 
-def fitOLS(dta, predictors):
-    # concatenate intercept column of 1s
-    dta['Intercept'] = np.ones(np.shape(dta)[0])
-    # get columns of predictors
-    cols = dta.columns.tolist()[-1:] + predictors
-    #fit OLS regression
-    ols = sm.OLS(dta['Shortage'], dta[cols])
-    result = ols.fit()
-    return result
-
-def Sobol_per_structure(design, ID):
-    # set up problem for SALib
-    if design == 'LHsamples_original_1000_AnnQonly':
-        param_bounds=np.loadtxt('../Qgen/uncertain_params_original.txt', usecols=(1,2))[7:13,:]
-    elif design == 'LHsamples_wider_1000_AnnQonly':
-        param_bounds=np.loadtxt('../Qgen/uncertain_params_wider.txt', usecols=(1,2))[7:13,:]
-    elif design == 'Paleo_SOWs':
-    	param_bounds=np.loadtxt('../Qgen/uncertain_params_paleo.txt',usecols=(1,2))[7:13,:]
-    elif design == 'CMIP_SOWs':
-    	param_bounds=np.loadtxt('../Qgen/uncertain_params_CMIP.txt',usecols=(1,2))[7:13,:]
-    elif design == 'CMIPunscaled_SOWs':
-        param_bounds=np.loadtxt('../Qgen/uncertain_params_CMIPunscaled.txt',usecols=(1,2))[7:13,:]
-    
-    param_names=['mu0','sigma0','mu1','sigma1','p00','p11']
-    params_no = len(param_names)
-    problem = {
-    'num_vars': params_no,
-    'names': param_names,
-    'bounds': param_bounds.tolist()
-    }
-    
+def getSamples(design, params_no, param_bounds):
     samples = np.loadtxt('../Qgen/' + design + '.txt')[:,7:13]
     # find SOWs where mu0 > mu1 and swap their wet and dry state parameters
     HMMparams = convertMultToParams(samples)
@@ -102,12 +76,82 @@ def Sobol_per_structure(design, ID):
             samples[i,:] = convertParamsToMult(newParams)
             
     # remove samples no longer in param_bounds
-    rows_to_keep = np.intersect1d(np.where(samples[:,0]>=0)[0],np.where(samples[:,0]<=0)[0])
+    rows_to_keep = np.union1d(np.where(samples[:,0]>=0)[0],np.where(samples[:,0]<=0)[0])
     for i in range(params_no):
-        within_rows = np.intersect1d(np.where(samples[:,i] > param_bounds[i][0])[0], np.where(samples[:,i] < param_bounds[i][1])[0])
-        rows_to_keep = np.union1d(rows_to_keep,within_rows)
+        within_rows = np.intersect1d(np.where(samples[:,i] >= param_bounds[i][0])[0], np.where(samples[:,i] <= param_bounds[i][1])[0])
+        rows_to_keep = np.intersect1d(rows_to_keep,within_rows)
     
     samples = samples[rows_to_keep,:]
+    
+    return samples, rows_to_keep
+
+def fitOLS(dta, predictors):
+    # concatenate intercept column of 1s
+    dta['Intercept'] = np.ones(np.shape(dta)[0])
+    # get columns of predictors
+    cols = dta.columns.tolist()[-1:] + predictors
+    #fit OLS regression
+    ols = sm.OLS(dta['Shortage'], dta[cols])
+    result = ols.fit()
+    return result
+
+def fitOLS_interact(dta, predictors):
+    # concatenate intercept column of 1s
+    dta['Intercept'] = np.ones(np.shape(dta)[0])
+    # get columns of predictors
+    cols = dta.columns.tolist()[-1:] + predictors + ['Interaction']
+    #fit OLS regression
+    ols = sm.OLS(np.log(dta['Shortage']+0.0001), dta[cols])
+    result = ols.fit()
+    return result
+
+def fitLogit(dta, predictors):
+    # concatenate intercept column of 1s
+    dta['Intercept'] = np.ones(np.shape(dta)[0]) 
+    # get columns of predictors
+    cols = dta.columns.tolist()[-1:] + predictors 
+    #fit logistic regression
+    logit = sm.Logit(dta['Success'], dta[cols], disp=False)
+    result = logit.fit() 
+    return result  
+
+def fitLogit_interact(dta, predictors):
+    # concatenate intercept column of 1s
+    dta['Intercept'] = np.ones(np.shape(dta)[0]) 
+    # get columns of predictors
+    cols = dta.columns.tolist()[-1:] + predictors + ['Interaction']
+    #fit logistic regression
+    logit = sm.Logit(dta['Success'], dta[cols], disp=False)
+    result = logit.fit() 
+    return result
+
+def setupProblem(design):
+    # set up problem for SALib
+    if design == 'LHsamples_original_1000_AnnQonly':
+        param_bounds = np.loadtxt('../Qgen/uncertain_params_original.txt', usecols=(1,2))[7:13,:]
+    elif design == 'LHsamples_wider_1000_AnnQonly':
+        param_bounds = np.loadtxt('../Qgen/uncertain_params_wider.txt', usecols=(1,2))[7:13,:]
+    elif design == 'Paleo_SOWs':
+    	param_bounds = np.loadtxt('../Qgen/uncertain_params_paleo.txt',usecols=(1,2))[7:13,:]
+    elif design == 'CMIP_SOWs':
+    	param_bounds = np.loadtxt('../Qgen/uncertain_params_CMIP.txt',usecols=(1,2))[7:13,:]
+    elif design == 'CMIPunscaled_SOWs':
+        param_bounds = np.loadtxt('../Qgen/uncertain_params_CMIPunscaled.txt',usecols=(1,2))[7:13,:]
+    
+    param_names=['mu0','sigma0','mu1','sigma1','p00','p11']
+    params_no = len(param_names)
+    problem = {
+    'num_vars': params_no,
+    'names': param_names,
+    'bounds': param_bounds.tolist()
+    }
+    
+    return param_bounds, param_names, params_no, problem
+
+def Sobol_per_structure(design, ID):
+    # get problem parameters (parameters, ranges, samples)
+    param_bounds, param_names, params_no, problem = setupProblem(design)
+    samples, rows_to_keep = getSamples(design, params_no, param_bounds)
     
     # constants
     percentiles = np.arange(0,100)
@@ -125,8 +169,8 @@ def Sobol_per_structure(design, ID):
     
     # load shortage data for this experimental design
     SYN_short = np.load('../../../Simulation_outputs/' + design + '/' + ID + '_info.npy')
-    # remove columns for year (0) and demand (odd columns)
-    SYN_short = SYN_short[:,idx,:]
+    # remove columns for year (0) and demand (odd columns) and convert to m^3
+    SYN_short = SYN_short[:,idx,:]*1233.48
     SYN_short = SYN_short[:,:,rows_to_keep]
     # replace failed runs with np.nan (currently -999.9)
     SYN_short[SYN_short < 0] = np.nan
@@ -171,3 +215,77 @@ def Sobol_per_structure(design, ID):
     R2_scores.to_csv('../Simulation_outputs/' + design + '/' + ID + '_R2.csv')
     
     return None
+
+def calcFailureHeatmap(design, ID):
+    # get problem parameters (parameters, ranges, samples)
+    param_bounds, param_names, params_no, problem = setupProblem(design)
+    samples, rows_to_keep = getSamples(design, params_no, param_bounds)
+    
+    # constants
+    nsamples = len(rows_to_keep)
+    nrealizations = 10
+    nyears = 105
+    nmonths = 12
+    
+    # vectors
+    idx_shortage = np.arange(2,22,2)
+    idx_demand = np.arange(1,21,2)
+    frequencies = np.arange(10, 110, 10)
+    magnitudes = np.arange(10, 110, 10)
+    
+    # load historical demand and shortage and convert acre-ft to m^3
+    data = np.loadtxt('../Simulation_outputs/' + ID + '_info_hist.txt')
+    historic_demands = data[:,1]*1233.48
+    historic_shortages = data[:,2]*1233.48
+    #reshape into water years
+    historic_shortages_f = np.reshape(historic_shortages, [nyears, nmonths])
+    historic_demands_f = np.reshape(historic_demands, [nyears, nmonths])
+    
+    historic_demands_f_WY = np.sum(historic_demands_f,axis=1)
+    historic_shortages_f_WY = np.sum(historic_shortages_f,axis=1)
+    historic_ratio = (historic_shortages_f_WY*100)/historic_demands_f_WY
+    historic_percents = [100-ss.percentileofscore(historic_ratio, mag, kind='strict') for mag in magnitudes]
+    
+    percentSOWs = np.zeros([len(frequencies), len(magnitudes)])
+    allSOWs = np.zeros([len(frequencies), len(magnitudes), nsamples*nrealizations])
+    
+    # load demand and shortage data for this experimental design and convert acre-ft to m^3
+    data = np.load('../../../Simulation_outputs/' + design + '/' + ID + '_info.npy')
+    demands = data[:,idx_demand,:]*1233.48
+    shortages = data[:,idx_shortage,:]*1233.48
+    # replace failed runs with np.nan (currently -999.9)
+    demands[demands < 0] = np.nan
+    shortages[shortages < 0] = np.nan
+    
+    #Reshape into water years
+    #Create matrix of [no. years x no. months x no. experiments]
+    f_shortages = np.zeros([nyears,nmonths,nsamples*nrealizations])
+    f_demands = np.zeros([nyears,nmonths,nsamples*nrealizations]) 
+    for i in range(nsamples):
+        for j in range(nrealizations):
+            f_shortages[:,:,i*nrealizations+j] = np.reshape(shortages[:,j,i], [nyears, nmonths])
+            f_demands[:,:,i*nrealizations+j] = np.reshape(demands[:,j,i], [nyears, nmonths])
+    
+    # Shortage per water year
+    f_demands_WY = np.sum(f_demands,axis=1)
+    f_shortages_WY = np.sum(f_shortages,axis=1)
+    for j in range(len(frequencies)):
+        for h in range(len(magnitudes)):
+            success = np.zeros(nsamples*nrealizations)
+            for k in range(len(success)):
+                ratio = (f_shortages_WY[:,k]*100)/f_demands_WY[:,k]
+                if ss.percentileofscore(ratio, magnitudes[h], kind='strict') > (100-frequencies[j]):
+                    success[k] = 100
+            allSOWs[j,h,:] = success
+            percentSOWs[j,h] = np.mean(success)
+            
+    gridcells = []
+    for x in historic_percents:
+        try:
+            gridcells.append(list(frequencies).index(roundup(x)))
+        except:
+            gridcells.append(0)
+            
+    np.save('../Simulation_outputs/' + design + '/'+ ID + '_heatmap.npy',allSOWs)
+    
+    return allSOWs, percentSOWs, historic_percents, magnitudes, frequencies, gridcells
