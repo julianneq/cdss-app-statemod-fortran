@@ -5,6 +5,8 @@ import pandas as pd
 import math
 from SALib.analyze import delta
 import statsmodels.api as sm
+
+ss.chisqprob = lambda chisq, df: ss.chi2.sf(chisq, df)
 '''
 def fitHMM(TransformedQ):
     # fit HMM
@@ -89,7 +91,7 @@ def fitOLS(dta, predictors):
     # concatenate intercept column of 1s
     dta['Intercept'] = np.ones(np.shape(dta)[0])
     # get columns of predictors
-    cols = dta.columns.tolist()[-1:] + predictors
+    cols = ['Intercept'] + predictors
     #fit OLS regression
     ols = sm.OLS(dta['Shortage'], dta[cols])
     result = ols.fit()
@@ -99,9 +101,9 @@ def fitOLS_interact(dta, predictors):
     # concatenate intercept column of 1s
     dta['Intercept'] = np.ones(np.shape(dta)[0])
     # get columns of predictors
-    cols = dta.columns.tolist()[-1:] + predictors + ['Interaction']
+    cols = ['Intercept'] + predictors + ['Interaction']
     #fit OLS regression
-    ols = sm.OLS(np.log(dta['Shortage']+0.0001), dta[cols])
+    ols = sm.OLS(dta['Shortage'], dta[cols])
     result = ols.fit()
     return result
 
@@ -109,7 +111,7 @@ def fitLogit(dta, predictors):
     # concatenate intercept column of 1s
     dta['Intercept'] = np.ones(np.shape(dta)[0]) 
     # get columns of predictors
-    cols = dta.columns.tolist()[-1:] + predictors 
+    cols = ['Intercept'] + predictors 
     #fit logistic regression
     logit = sm.Logit(dta['Success'], dta[cols], disp=False)
     result = logit.fit() 
@@ -119,7 +121,7 @@ def fitLogit_interact(dta, predictors):
     # concatenate intercept column of 1s
     dta['Intercept'] = np.ones(np.shape(dta)[0]) 
     # get columns of predictors
-    cols = dta.columns.tolist()[-1:] + predictors + ['Interaction']
+    cols = ['Intercept'] + predictors + ['Interaction']
     #fit logistic regression
     logit = sm.Logit(dta['Success'], dta[cols], disp=False)
     result = logit.fit() 
@@ -148,6 +150,24 @@ def setupProblem(design):
     
     return param_bounds, param_names, params_no, problem
 
+def calc_syn_magnitude(nyears, nmonths, nrealizations, nsamples, percentiles, SYN_short):
+    # Reshape into water years
+    # Create matrix of [no. years x no. months x no. experiments]
+    f_SYN_short = np.zeros([nyears, nmonths, nsamples*nrealizations])
+    for i in range(nsamples):
+        for j in range(nrealizations):
+            f_SYN_short[:,:,i*nrealizations+j] = np.reshape(SYN_short[:,j,i], [nyears, nmonths])
+
+    # Shortage per water year
+    f_SYN_short_WY = np.sum(f_SYN_short,axis=1)
+
+    # Identify droughts at percentiles
+    syn_magnitude = np.zeros([len(percentiles),nsamples*nrealizations])
+    for j in range(nsamples*nrealizations):
+        syn_magnitude[:,j] = [np.percentile(f_SYN_short_WY[:,j], i) for i in percentiles]
+
+    return syn_magnitude
+
 def Sobol_per_structure(design, ID):
     # get problem parameters (parameters, ranges, samples)
     param_bounds, param_names, params_no, problem = setupProblem(design)
@@ -174,22 +194,9 @@ def Sobol_per_structure(design, ID):
     SYN_short = SYN_short[:,:,rows_to_keep]
     # replace failed runs with np.nan (currently -999.9)
     SYN_short[SYN_short < 0] = np.nan
-    
-    # Reshape into water years
-    # Create matrix of [no. years x no. months x no. experiments]
-    f_SYN_short = np.zeros([nyears, nmonths, nsamples*nrealizations])
-    for i in range(nsamples):
-        for j in range(nrealizations):
-            f_SYN_short[:,:,i*nrealizations+j] = np.reshape(SYN_short[:,j,i], [nyears, nmonths])
-
-    # Shortage per water year
-    f_SYN_short_WY = np.sum(f_SYN_short,axis=1)
-
     # Identify droughts at percentiles
-    syn_magnitude = np.zeros([len(percentiles),nsamples*nrealizations])
-    for j in range(nsamples*nrealizations):
-        syn_magnitude[:,j] = [np.percentile(f_SYN_short_WY[:,j], i) for i in percentiles]
-
+    syn_magnitude = calc_syn_magnitude(nyears, nmonths, nrealizations, nsamples, percentiles, SYN_short)
+    
     # Delta Method analysis
     for i in range(len(percentiles)):
         if syn_magnitude[i,:].any():
@@ -253,6 +260,8 @@ def calcFailureHeatmap(design, ID):
     data = np.load('../../../Simulation_outputs/' + design + '/' + ID + '_info.npy')
     demands = data[:,idx_demand,:]*1233.48
     shortages = data[:,idx_shortage,:]*1233.48
+    demands = demands[:,:,rows_to_keep]
+    shortages = shortages[:,:,rows_to_keep]
     # replace failed runs with np.nan (currently -999.9)
     demands[demands < 0] = np.nan
     shortages[shortages < 0] = np.nan
@@ -289,3 +298,22 @@ def calcFailureHeatmap(design, ID):
     np.save('../Simulation_outputs/' + design + '/'+ ID + '_heatmap.npy',allSOWs)
     
     return allSOWs, percentSOWs, historic_percents, magnitudes, frequencies, gridcells
+
+def calcPseudoR2(frequencies, magnitudes, params_no, allSOWsperformance, dta, ID, design):
+    all_pseudo_r_scores = pd.DataFrame()
+    for j in range(len(frequencies)):
+        for h in range(len(magnitudes)):
+            pseudo_r_scores = np.zeros(params_no)
+            # Logistic regression analysis
+            dta['Success'] = allSOWsperformance[j,h,:]
+            for m in range(params_no):
+                predictors = dta.columns.tolist()[m:(m+1)]
+                try:
+                    result = fitLogit(dta, predictors)
+                    pseudo_r_scores[m] = result.prsquared
+                except: 
+                    pseudo_r_scores[m] = pseudo_r_scores[m]
+            all_pseudo_r_scores[str(frequencies[j])+'yrs_'+str(magnitudes[h])+'prc'] = pseudo_r_scores
+    all_pseudo_r_scores.to_csv('../Simulation_outputs/' + design + '/' + ID + '_pseudo_r_scores.csv', sep=",")
+    
+    return all_pseudo_r_scores

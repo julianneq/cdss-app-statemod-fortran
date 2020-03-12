@@ -53,14 +53,6 @@ for i in range(np.shape(HMMparams)[0]):
         newParams = np.array([[mu0, std0, mu1, std1, p00, p11]])
         LHsamples[i,:] = convertParamsToMult(newParams)
 
-# remove samples no longer in param_bounds
-rows_to_keep = np.intersect1d(np.where(LHsamples[:,0]>=0)[0],np.where(LHsamples[:,0]<=0)[0])
-for i in range(params_no):
-    within_rows = np.intersect1d(np.where(LHsamples[:,i] > param_bounds[i][0])[0], np.where(LHsamples[:,i] < param_bounds[i][1])[0])
-    rows_to_keep = np.union1d(rows_to_keep,within_rows)
-
-LHsamples = LHsamples[rows_to_keep,:]
-
 if design == 'LHsamples_original_1000_AnnQonly' or design == 'LHsamples_original_200_AnnQonly':
     param_bounds=np.loadtxt('../Qgen/uncertain_params_original.txt', usecols=(1,2))[7:13,:]
 elif design == 'LHsamples_narrowed_1000_AnnQonly' or design == 'LHsamples_narrowed_200_AnnQonly':
@@ -75,7 +67,6 @@ elif design == 'CMIPunscaled_SOWs':
     param_bounds=np.loadtxt('../Qgen/uncertain_params_CMIPunscaled.txt',usecols=(1,2))[7:13,:]
 	
 SOW_values = np.array([1,1,1,1,0,0]) #Default parameter values for base SOW
-samples = len(LHsamples[:,0])
 realizations = 10
 param_names=['XBM_mu0','XBM_sigma0','XBM_mu1','XBM_sigma1','XBM_p00','XBM_p11']
 params_no = len(param_names)
@@ -84,6 +75,16 @@ problem = {
     'names': param_names,
     'bounds': param_bounds.tolist()
 }
+
+# remove samples no longer in param_bounds
+rows_to_keep = np.union1d(np.where(LHsamples[:,0]>=0)[0],np.where(LHsamples[:,0]<=0)[0])
+for i in range(params_no):
+    within_rows = np.intersect1d(np.where(LHsamples[:,i] >= param_bounds[i][0])[0], np.where(LHsamples[:,i] <= param_bounds[i][1])[0])
+    rows_to_keep = np.intersect1d(rows_to_keep,within_rows)
+
+LHsamples = LHsamples[rows_to_keep,:]
+samples = len(LHsamples[:,0])
+
 percentiles = np.arange(0,100)
 #all_IDs = np.genfromtxt('../Structures_files/metrics_structures.txt',dtype='str').tolist() 
 all_IDs = np.genfromtxt('../Structures_files/unfinished_structures.txt',dtype='str').tolist() 

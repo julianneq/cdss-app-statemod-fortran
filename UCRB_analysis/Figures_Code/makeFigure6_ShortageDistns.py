@@ -4,13 +4,14 @@ from matplotlib import pyplot as plt
 import matplotlib.patches
 from scipy import stats
 import seaborn as sns
+from utils import setupProblem, getSamples
 
 def makeFigure6_ShortageDistns():
 
     sns.set_style("white")
     
     designs = ['LHsamples_original_1000_AnnQonly','CMIPunscaled_SOWs','Paleo_SOWs','LHsamples_wider_1000_AnnQonly']
-    nsamples = [1000,97,366,1000]
+    nsamples = [1000,97,366,1000] # before removing those out of bounds
     titles = ['Box Around Historical','CMIP','Paleo','All-Encompassing']
     structures = ['53_ADC022','7200645']
     nrealizations = 10
@@ -20,22 +21,28 @@ def makeFigure6_ShortageDistns():
     count = 1 # subplot counter
     for structure in structures:
         # load historical shortage data and convert acre-ft to m^3
-        histData = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,2]*1233.48
+        hist_short = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,2]*1233.48
         # replace failed runs with np.nan (currently -999.9)
-        histData[histData < 0] = np.nan
+        hist_short[hist_short < 0] = np.nan
         for i, design in enumerate(designs):
+            # find which samples are still in param_bounds after flipping misidentified wet and dry states
+            param_bounds, param_names, params_no, problem = setupProblem(design)
+            _, rows_to_keep = getSamples(design, params_no, param_bounds)
+            nsamples[i] = len(rows_to_keep) # after removing those out of bounds after reclassification
+            
             # load shortage data for this experimental design
-            synthetic = np.load('../../../Simulation_outputs/' + design + '/' + structure + '_info.npy')
+            SYN_short = np.load('../../../Simulation_outputs/' + design + '/' + structure + '_info.npy')
             # remove columns for year (0) and demand (odd columns) and convert acre-ft to ^3
-            synthetic = synthetic[:,idx,:]*1233.48
+            SYN_short = SYN_short[:,idx,:]*1233.48
+            SYN_short = SYN_short[:,:,rows_to_keep]
             # reshape into 12*nyears x nsamples*nrealizations
-            synthetic = synthetic.reshape([np.shape(synthetic)[0],np.shape(synthetic)[1]*np.shape(synthetic)[2]])
+            SYN_short = SYN_short.reshape([np.shape(SYN_short)[0],np.shape(SYN_short)[1]*np.shape(SYN_short)[2]])
             # replace failed runs with np.nan (currently -999.9)
-            synthetic[synthetic < 0] = np.nan
+            SYN_short[SYN_short < 0] = np.nan
             
             # plot shortage distribution
             ax = fig.add_subplot(2,4,count)
-            handles, labels = plotSDC(ax, synthetic, histData, nsamples[i], nrealizations)
+            handles, labels = plotSDC(ax, SYN_short, hist_short, nsamples[i], nrealizations)
             
             # only put labels on bottom row/left column, make y ranges consistent, title experiment
             if count == 1 or count == 5:
@@ -76,10 +83,10 @@ def alpha(i, base=0.2):
         ar.append(l(ar[-1]))
     return ar[-1]
   
-def plotSDC(ax, synthetic, histData, nsamples, nrealizations):
+def plotSDC(ax, SYN_short, hist_short, nsamples, nrealizations):
     n = 12 # number of months
     #Reshape historic data to a [no. years x no. months] matrix
-    f_hist = np.reshape(histData, (int(np.size(histData)/n), n))
+    f_hist = np.reshape(hist_short, (int(np.size(hist_short)/n), n))
     #Reshape to annual totals
     f_hist_totals = np.sum(f_hist,1)  
     #Calculate historical shortage duration curves
@@ -87,24 +94,24 @@ def plotSDC(ax, synthetic, histData, nsamples, nrealizations):
     
     #Reshape synthetic data
     #Create matrix of [no. years x no. months x no. samples]
-    synthetic_global = np.zeros([int(np.size(histData)/n),n,nsamples*nrealizations])
+    synthetic_global = np.zeros([int(np.size(hist_short)/n),n,nsamples*nrealizations])
     # Loop through every SOW and reshape to [no. years x no. months]
     for j in range(nsamples*nrealizations):
-        synthetic_global[:,:,j]= np.reshape(synthetic[:,j], (int(np.size(synthetic[:,j])/n), n))
+        synthetic_global[:,:,j]= np.reshape(SYN_short[:,j], (int(np.size(SYN_short[:,j])/n), n))
     #Reshape to annual totals
     synthetic_global_totals = np.sum(synthetic_global,1)
     
     p=np.arange(100,-10,-10)
     
     #Calculate synthetic shortage duration curves
-    F_syn = np.empty([int(np.size(histData)/n),nsamples*nrealizations])
+    F_syn = np.empty([int(np.size(hist_short)/n),nsamples*nrealizations])
     F_syn[:] = np.NaN
     for j in range(nsamples*nrealizations):
         F_syn[:,j] = np.sort(synthetic_global_totals[:,j])
     
     # For each percentile of magnitude, calculate the percentile among the experiments run
     perc_scores = np.zeros_like(F_syn) 
-    for m in range(int(np.size(histData)/n)):
+    for m in range(int(np.size(hist_short)/n)):
         perc_scores[m,:] = [stats.percentileofscore(F_syn[m,:], j, 'rank') for j in F_syn[m,:]]
                 
     P = np.arange(1.,len(F_hist)+1)*100 / len(F_hist)
@@ -120,6 +127,6 @@ def plotSDC(ax, synthetic, histData, nsamples, nrealizations):
         label = "{:.0f} %".format(100-p[i])
         labels.append(label)
     ax.plot(P,F_hist, c='black', linewidth=2, label='Historical record')
-    ax.set_xlim(0,100)
+    ax.set_xlim(1,100)
     
     return handles, labels

@@ -82,7 +82,7 @@ def plotSums(df, ax, colors):
     ax.fill_between(range(0,100), y2, 0, where=y1>y2, color=colors[-1])
     ymax = max(ymax, np.nanmax(y2))
     ymin = min(ymin, np.nanmin(y2))
-    ax.set_xlim([0,100])
+    ax.set_xlim([0,99])
     ax.set_ylim([ymin,ymax])
     ax.tick_params(axis='y',labelsize=14)
 
