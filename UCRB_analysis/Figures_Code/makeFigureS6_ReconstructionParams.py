@@ -62,9 +62,9 @@ simParams['Ensemble'] = 'Reconstruction + Noise'
 
 noNoiseParams = fitParams(np.array(Paleo['ScaledReconCisco'][340:429]))
 
-simParams.loc[nsims] = [means[0], means[2], means[4], means[5], means[1], means[3], 'MeanRecon+Noise']
+simParams.loc[nsims] = [means[0], means[2], means[4], means[5], means[1], means[3], 'Mean Reconstruction + Noise']
 simParams.loc[nsims+1] = [noNoiseParams[0], noNoiseParams[2], noNoiseParams[4], \
-              noNoiseParams[5], noNoiseParams[1], noNoiseParams[3], 'Recon']
+              noNoiseParams[5], noNoiseParams[1], noNoiseParams[3], 'Reconstruction']
 
 allParams = pd.concat([simParams,trueParams])
 

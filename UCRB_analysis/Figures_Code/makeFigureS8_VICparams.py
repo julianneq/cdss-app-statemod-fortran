@@ -96,6 +96,6 @@ sns.set_style("dark")
 colors=['#ff7f00','#377eb8','#4daf4a','#000000']
 sns.set_palette(sns.color_palette(colors))
 
-sns.pairplot(allSamples,hue='Ensemble')
+sns.pairplot(allSamples,hue='Ensemble',corner=True)
 plt.savefig('FigureS8_VICparams.pdf')
 plt.clf()
