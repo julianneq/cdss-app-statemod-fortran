@@ -4,8 +4,9 @@ from makeFigure4_AllHMMparams import makeFigure4_AllHMMparams
 from makeFigure5_AllFlowRanges import makeFigure5_AllFlowRanges
 from makeFigure6_ShortageDistns import makeFigure6_ShortageDistns
 from makeFigure7_VarianceDecomposition import makeFigure7_VarianceDecomposition
-from makeFigure8_FactorMaps import makeFigure8_FactorMaps
-from makeFigure9_RobustnessRanks import makeFigure9_RobustnessRanks
+from makeFigure8_ResponseSurfaces import makeFigure8_ResponseSurfaces
+from makeFigure9_FactorMaps import makeFigure9_FactorMaps
+from makeFigure10_RobustnessRanks import makeFigure10_RobustnessRanks
 from makeFigureS1_GaussianFits import makeFigureS1_GaussianFits
 from makeFigureS2_MarkovFits import makeFigureS2_MarkovFits
 from makeFigureS3_SpatialCorrelation import makeFigureS3_SpatialCorrelation
@@ -23,8 +24,10 @@ makeFigure4_AllHMMparams()
 makeFigure5_AllFlowRanges()
 makeFigure6_ShortageDistns()
 makeFigure7_VarianceDecomposition()
-makeFigure8_FactorMaps()
-makeFigure9_RobustnessRanks()
+makeFigure8_ResponseSurfaces()
+makeFigure9_FactorMaps()
+makeFigure10_RobustnessRanks()
+
 makeFigureS1_GaussianFits()
 makeFigureS2_MarkovFits()
 makeFigureS3_SpatialCorrelation()
@@ -33,5 +36,6 @@ makeFigureS5_ReconstructionModel()
 makeFigureS6_ReconstructionParams()
 makeFigureS7_VICerrorModel()
 makeFigureS8_VICparams()
-makeFigureS9_FactorMaps2()
-makeFigureS10_SatisficingSurfaces()
+makeFigureS9_ResponseSurfaces2()
+makeFigureS10_FactorMaps2()
+makeFigureS11_SatisficingSurfaces()

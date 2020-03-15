@@ -5,6 +5,17 @@ import numpy as np
 import statsmodels.api as sm
 import utils
 
+def makeFigureS2_MarkovFits():
+    
+    AnnualQ = np.array(pd.read_csv('../Qgen/AnnualQ.csv'))*1233.48 # convert to m^3
+    logQ = np.log(AnnualQ[35::,-1]) # last 70 years of log-space flows at last node
+    hidden_states, mus, sigmas, P = utils.fitHMM(logQ) # fit HMM
+    
+    plotTimeSeries(logQ, hidden_states)
+    plotStateCorrelation(logQ, hidden_states, P)
+    
+    return None
+
 def plotTimeSeries(TransformedQ, hidden_states):
     
     sns.set()
@@ -49,10 +60,3 @@ def plotStateCorrelation(TransformedQ, hidden_states, P):
     fig.clf()
         
     return None
-
-AnnualQ = np.array(pd.read_csv('../Qgen/AnnualQ.csv'))*1233.48 # convert to m^3
-logQ = np.log(AnnualQ[35::,-1]) # last 70 years of log-space flows at last node
-hidden_states, mus, sigmas, P = utils.fitHMM(logQ) # fit HMM
-
-plotTimeSeries(logQ, hidden_states)
-plotStateCorrelation(logQ, hidden_states, P)

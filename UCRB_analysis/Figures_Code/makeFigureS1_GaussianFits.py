@@ -5,6 +5,19 @@ import numpy as np
 from scipy import stats as ss
 import utils
 
+def makeFigureS1_GaussianFits():
+    
+    AnnualQ = np.array(pd.read_csv('../Qgen/AnnualQ.csv'))*1233.48 # convert to m^3
+    logQ = np.log(AnnualQ[35::,-1]) # last 70 years of log-space flows at last node
+    hidden_states, mus, sigmas, P = utils.fitHMM(logQ) # fit HMM
+    
+    # plot Gaussian fits
+    combinedQQplot(logQ, mus, sigmas, P)
+    combinedHistogram(logQ, mus, sigmas, P)
+    assessFitByState(logQ, hidden_states, mus, sigmas, P)
+    
+    return None
+
 def combinedQQplot(TransformedQ, mus, sigmas, P):
     
     # calculate stationary distribution
@@ -114,12 +127,3 @@ def assessFitByState(logQ, hidden_states, mus, sigmas, P):
     fig.clf()
     
     return None
-
-AnnualQ = np.array(pd.read_csv('../Qgen/AnnualQ.csv'))*1233.48 # convert to m^3
-logQ = np.log(AnnualQ[35::,-1]) # last 70 years of log-space flows at last node
-hidden_states, mus, sigmas, P = utils.fitHMM(logQ) # fit HMM
-
-# plot Gaussian fits
-combinedQQplot(logQ, mus, sigmas, P)
-combinedHistogram(logQ, mus, sigmas, P)
-assessFitByState(logQ, hidden_states, mus, sigmas, P)
