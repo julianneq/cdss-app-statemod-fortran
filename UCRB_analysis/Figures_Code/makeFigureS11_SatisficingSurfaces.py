@@ -8,7 +8,7 @@ def makeFigureS11_SatisficingSurfaces():
     titles = ['Box Around Historical','CMIP','Paleo','All-Encompassing']
     structures = ['53_ADC022','7200645']
     
-    sns.set_style("dark")
+    #sns.set_style("dark")
     
     fig = plt.figure()
     

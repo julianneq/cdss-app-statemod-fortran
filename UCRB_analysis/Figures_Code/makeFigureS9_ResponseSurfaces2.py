@@ -6,7 +6,7 @@ import pandas as pd
 from utils import setupProblem, getSamples, fitOLS_interact, calc_syn_magnitude
 from makeFigure6_ShortageDistns import plotSDC
 from makeFigure7_VarianceDecomposition import plotSums
-from 
+from makeFigure8_ResponseSurfaces import plotResponseSurface
 
 def makeFigureS9_ResponseSurfaces2():
 
@@ -106,59 +106,5 @@ def makeFigureS9_ResponseSurfaces2():
 
     fig.savefig('FigureS9_ResponseSurfaces2.pdf')
     fig.clf()
-    
-    return None
-
-def getLabels(variable):
-    if variable == 'mu0':
-        label = r'$\mu_0$'
-    elif variable == 'sigma0':
-        label = r'$\sigma_0$'
-    elif variable == 'mu1':
-        label = r'$\mu_1$'
-    elif variable == 'sigma1':
-        label = r'$\sigma_1$'
-    elif variable == 'p00':
-        label = r'$p_{00}$'
-    elif variable == 'p11':
-        label = r'$p_{11}$'
-    
-    return label
-
-def plotResponseSurface(ax, result, dta, CMIP, Paleo, contour_cmap, dot_cmap, \
-                        xgrid, ygrid, xvar, yvar, otherSOWs):
-    
-    xlabel = getLabels(xvar)
-    ylabel = getLabels(yvar)
-    
-    # find probability of success for x=xgrid, y=ygrid
-    X, Y = np.meshgrid(xgrid, ygrid)
-    x = X.flatten()
-    y = Y.flatten()
-    grid = np.column_stack([np.ones(len(x)),x,y,x*y])
-     
-    z = result.predict(grid)
-    z[z<0.0] = 0.0 # replace negative shortage predictions with 0
-    Z = np.reshape(z, np.shape(X))
-    vmin = np.min([np.min(z),np.min(dta['Shortage'].values)])
-    vmax = np.max([np.max(z),np.max(dta['Shortage'].values)])
-    norm = mpl.colors.Normalize(vmin,vmax)
-    
-    contourset = ax.contourf(X, Y, Z, cmap=contour_cmap, norm=norm)
-    if otherSOWs == True:
-        ax.scatter(CMIP[xvar].values, CMIP[yvar].values, c='#ffffb3', edgecolor='none', s=10)
-        ax.scatter(Paleo[xvar].values, Paleo[yvar].values, c='#b3de69', edgecolor='none', s=10)
-        cbar = ax.figure.colorbar(contourset, ax=ax)
-    else:
-        ax.scatter(dta[xvar].values, dta[yvar].values, c=dta['Shortage'].values, edgecolor='none', cmap=dot_cmap, norm=norm, s=10)
-        cbar = ax.figure.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=contour_cmap))
-        
-    ax.set_xlim(np.nanmin(X),np.nanmax(X))
-    ax.set_ylim(np.nanmin(Y),np.nanmax(Y))
-    ax.set_xlabel(xlabel,fontsize=14)
-    ax.set_ylabel(ylabel,fontsize=14)
-    ax.tick_params(axis='both',labelsize=14)
-    cbar.ax.set_ylabel('Shortage',rotation=-90, fontsize=14, labelpad=15)
-    cbar.ax.tick_params(axis='y',labelsize=14)
     
     return None

@@ -75,7 +75,6 @@ def makeFigure9_FactorMaps():
                 h += 2
             dta['Success'] = allSOWsperformance[list(frequencies).index(100-percentiles[i]),h,:]
             pseudo_r_scores = all_pseudo_r_scores[str((100-percentiles[i]))+'yrs_'+str(magnitudes[h])+'prc'].values
-            print(pseudo_r_scores)
             if pseudo_r_scores.any():
                 ax = fig.add_subplot(2,4,i*4+j+2)
                 top_predictors = np.argsort(pseudo_r_scores)[::-1][:2]
@@ -86,9 +85,9 @@ def makeFigure9_FactorMaps():
                                   param_bounds[top_predictors[0]][1], np.around((ranges[0][1]-ranges[0][0])/100,decimals=4))
                 ygrid = np.arange(param_bounds[top_predictors[1]][0], 
                                   param_bounds[top_predictors[1]][1], np.around((ranges[1][1]-ranges[1][0])/100,decimals=4))
-                all_predictors = [ dta.columns.tolist()[i] for i in top_predictors]
+                all_predictors = [ dta.columns.tolist()[k] for k in top_predictors]
                 dta['Interaction'] = dta[all_predictors[0]]*dta[all_predictors[1]]
-                result = fitLogit_interact(dta, [all_predictors[i] for i in [0,1]])
+                result = fitLogit_interact(dta, [all_predictors[k] for k in [0,1]])
                 contourset = plotFactorMap(ax, result, dta, probability_cmap, success_cmap, contour_levels, xgrid, ygrid, \
                               all_predictors[0], all_predictors[1])
                 ax.set_title("Success if " + str(magnitudes[h]) + "% shortage\n<" + str((100-percentiles[i])) + "% of the time", fontsize=16)

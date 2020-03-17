@@ -84,7 +84,7 @@ def makeFigureS10_FactorMaps2():
                                   param_bounds[top_predictors[0]][1], np.around((ranges[0][1]-ranges[0][0])/100,decimals=4))
                 ygrid = np.arange(param_bounds[top_predictors[1]][0], 
                                   param_bounds[top_predictors[1]][1], np.around((ranges[1][1]-ranges[1][0])/100,decimals=4))
-                all_predictors = [ dta.columns.tolist()[i] for i in top_predictors]
+                all_predictors = [ dta.columns.tolist()[k] for k in top_predictors]
                 dta['Interaction'] = dta[all_predictors[0]]*dta[all_predictors[1]]
                 result = fitLogit(dta, [all_predictors[0]])
                 print(result.prsquared)
@@ -92,15 +92,15 @@ def makeFigureS10_FactorMaps2():
                 print(result.prsquared)
                 try:
                     print("interact")
-                    result = fitLogit_interact(dta, [all_predictors[i] for i in [0,1]])
+                    result = fitLogit_interact(dta, [all_predictors[k] for k in [0,1]])
                 except:
                     print("no interact")
-                    result = fitLogit(dta, [all_predictors[i] for i in [0,1]])
+                    result = fitLogit(dta, [all_predictors[k] for k in [0,1]])
                 contourset = plotFactorMap(ax, result, dta, probability_cmap, success_cmap, contour_levels, xgrid, ygrid, \
                               all_predictors[0], all_predictors[1])
                 ax.set_title("Success if " + str(short_magnitudes[j]) + "% shortage\n<" + str((100-percentiles[i])) + "% of the time", fontsize=16)
     
-    fig.subplots_adjust(hspace=0.3,right=0.8,wspace=0.5)  
+    fig.subplots_adjust(hspace=0.5,right=0.8,wspace=0.5)  
     fig.set_size_inches([24.3,9.1])              
     cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
     cbar = fig.colorbar(contourset, cax=cbar_ax)
