@@ -40,4 +40,4 @@ def makeFigureS3_SpatialCorrelation():
     fig.savefig('FigureS3_SpatialCorrelation.pdf')
     fig.clf()
 
-return None
+    return None

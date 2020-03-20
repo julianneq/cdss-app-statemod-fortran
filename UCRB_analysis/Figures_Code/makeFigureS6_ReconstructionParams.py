@@ -6,7 +6,7 @@ import scipy.stats as ss
 from matplotlib import pyplot as plt
 from utils import fitParams
 
-def makeFigureS6_ReconstructionParams()
+def makeFigureS6_ReconstructionParams():
 
     # load paleo data at Cisco
     Paleo = pd.read_csv('../Qgen/Reconstruction/Cisco_Recon_v_Observed_v_Stateline.csv')
@@ -39,19 +39,24 @@ def makeFigureS6_ReconstructionParams()
     
     # make scatter plot of fitted params to observations (trueParams) compared to
     # fitted params to scaled reconstructed flows + residuals (simParams) and their average
-    means = np.mean(simParams,0)
+    meanParams = np.array([np.mean(simParams,0)])
+    meanParams = pd.DataFrame({'mu0':meanParams[:,0],'sigma0':meanParams[:,1],\
+                              'mu1':meanParams[:,2],'sigma1':meanParams[:,3],\
+                              'p00':meanParams[:,4],'p11':meanParams[:,5]})
+    meanParams['Ensemble'] = 'Mean Reconstruction + Noise'
+
     simParams = pd.DataFrame({'mu0':simParams[:,0],'sigma0':simParams[:,1],\
                               'mu1':simParams[:,2],'sigma1':simParams[:,3],\
                               'p00':simParams[:,4],'p11':simParams[:,5]})
     simParams['Ensemble'] = 'Reconstruction + Noise'
-    
-    noNoiseParams = fitParams(np.array(Paleo['ScaledReconCisco'][340:429]))
-    
-    simParams.loc[nsims] = [means[0], means[2], means[4], means[5], means[1], means[3], 'Mean Reconstruction + Noise']
-    simParams.loc[nsims+1] = [noNoiseParams[0], noNoiseParams[2], noNoiseParams[4], \
-                  noNoiseParams[5], noNoiseParams[1], noNoiseParams[3], 'Reconstruction']
-    
-    allParams = pd.concat([simParams,trueParams])
+
+    noNoiseParams = np.array([fitParams(np.array(Paleo['ScaledReconCisco'][340:429]))])
+    noNoiseParams = pd.DataFrame({'mu0':noNoiseParams[:,0],'sigma0':noNoiseParams[:,1],\
+                              'mu1':noNoiseParams[:,2],'sigma1':noNoiseParams[:,3],\
+                              'p00':noNoiseParams[:,4],'p11':noNoiseParams[:,5]})
+    noNoiseParams['Ensemble'] = 'Reconstruction'
+
+    allParams = pd.concat([simParams,meanParams,noNoiseParams,trueParams])
     
     
     sns.set_style("dark")

@@ -5,7 +5,7 @@ import scipy.stats as ss
 import pandas as pd
 import seaborn as sns
 
-def makeFIgureS7_VICerrorModel():
+def makeFigureS7_VICerrorModel():
 
     AnnualQ_h = np.loadtxt('../Qgen/AnnualQ.csv',delimiter=',',skiprows=1,usecols=[208])*1233.48 # convert to m^3
     

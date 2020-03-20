@@ -8,7 +8,7 @@ def makeFigureS11_SatisficingSurfaces():
     titles = ['Box Around Historical','CMIP','Paleo','All-Encompassing']
     structures = ['53_ADC022','7200645']
     
-    #sns.set_style("dark")
+    sns.set_style("dark")
     
     fig = plt.figure()
     
@@ -18,7 +18,7 @@ def makeFigureS11_SatisficingSurfaces():
             allSOWs, historic_percents, frequencies, magnitudes, gridcells, im = plotFailureHeatmap(ax, design, structure, False)
             for k in range(len(historic_percents)):
                 if historic_percents[k] != 0: # highlight historical frequencies at each magnitude in orange
-                    highlight_cell(k, gridcells[k], color="orange", linewidth=2)
+                    highlight_cell(k, gridcells[k], ax, color="orange", linewidth=2)
             
             if i == 0:
                 ax.set_title(titles[j])

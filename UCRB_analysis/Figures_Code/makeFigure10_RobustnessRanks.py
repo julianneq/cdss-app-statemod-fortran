@@ -61,12 +61,12 @@ def makeFigure10_RobustnessRanks():
     allSOWs, historic_percents, frequencies, magnitudes, gridcells, im = plotFailureHeatmap(ax, design, structure)
     for i in range(len(historic_percents)):
         if historic_percents[i] != 0: # highlight historical frequencies at each magnitude in orange
-            highlight_cell(i ,gridcells[i], color="orange", linewidth=2)
+            highlight_cell(i ,gridcells[i], ax, color="orange", linewidth=2)
     # highlight criteria in ranks in black
     for i in range(len(mags)):
-        highlight_cell(0, int(mags[i]/10)-1, color='black', linewidth=2)
+        highlight_cell(0, int(mags[i]/10)-1, ax, color='black', linewidth=2)
     for i in range(len(freqs)):
-        highlight_cell(int(freqs[i]/10)-1, 0, color='black', linewidth=2)
+        highlight_cell(int(freqs[i]/10)-1, 0, ax, color='black', linewidth=2)
     
     fig.set_size_inches([19.2,9.6])
     fig.subplots_adjust(bottom=0.2,wspace=0.25,hspace=0.35)

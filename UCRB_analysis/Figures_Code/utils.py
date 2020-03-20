@@ -1,4 +1,4 @@
-#from hmmlearn.hmm import GaussianHMM
+from hmmlearn.hmm import GaussianHMM
 from scipy import stats as ss
 import numpy as np
 import pandas as pd
@@ -7,7 +7,7 @@ from SALib.analyze import delta
 import statsmodels.api as sm
 
 ss.chisqprob = lambda chisq, df: ss.chi2.sf(chisq, df)
-'''
+
 def fitHMM(TransformedQ):
     # fit HMM
     model = GaussianHMM(n_components=2, n_iter=1000).fit(np.reshape(TransformedQ,[len(TransformedQ),1]))
@@ -24,7 +24,7 @@ def fitHMM(TransformedQ):
         hidden_states = 1 - hidden_states
     
     return hidden_states, mus, sigmas, P
-'''
+
 def fitParams(flows):
     # create matrices to store the parameters
     # each row is a different simulation

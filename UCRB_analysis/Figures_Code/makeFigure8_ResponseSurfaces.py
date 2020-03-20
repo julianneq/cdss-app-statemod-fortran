@@ -2,14 +2,14 @@ import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 import pandas as pd
-#import seaborn as sns
+import seaborn as sns
 from utils import setupProblem, getSamples, fitOLS_interact, calc_syn_magnitude
 from makeFigure6_ShortageDistns import plotSDC
 from makeFigure7_VarianceDecomposition import plotSums
 
 def makeFigure8_ResponseSurfaces():
 
-    #sns.set_style("white")
+    sns.set_style("white")
     
     # constants, vectors
     design = 'LHsamples_wider_1000_AnnQonly'
@@ -35,7 +35,7 @@ def makeFigure8_ResponseSurfaces():
     hist_short[hist_short < 0] = np.nan
     
     # load shortage data for this experimental design
-    SYN_short = np.load('../../../Simulation_outputs/' + design + '/' + structure + '_info.npy')
+    SYN_short = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
     # remove columns for year (0) and demand (odd columns) and convert acre-ft to m^3
     SYN_short = SYN_short[:,idx,:]*1233.48
     SYN_short = SYN_short[:,:,rows_to_keep]
@@ -55,54 +55,60 @@ def makeFigure8_ResponseSurfaces():
     R2_scores = pd.read_csv('../Simulation_outputs/' + design + '/' + structure + '_R2.csv')
     
     
-    fig = plt.figure()
-    fig.set_size_inches([19.2,9.5])
+    fig, axes = plt.subplots(2, 3, figsize=(19.2, 9.5))
     fig.subplots_adjust(hspace=0.3,wspace=0.3)
     # plot shortage distribution for this structure under all-encompassing experiment
-    ax = fig.add_subplot(2,3,1)
-    handles, labels = plotSDC(ax, SYN_short, hist_short, nsamples, nrealizations)
-    ax.set_ylim([0,6200000])
-    ax.ticklabel_format(style='sci', axis='y', scilimits=(6,6))
-    ax.tick_params(axis='both',labelsize=14)
-    ax.set_ylabel('Shortage (m' + r'$^3$' + ')',fontsize=14)
+    ax1 = axes[0,0]
+    handles, labels = plotSDC(ax1, SYN_short, hist_short, nsamples, nrealizations)
+    ax1.set_ylim([0,6200000])
+    ax1.ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+    ax1.tick_params(axis='both',labelsize=14)
+    ax1.set_ylabel('Shortage (m' + r'$^3$' + ')',fontsize=14)
     # add lines at percentiles
     for percentile in percentiles:
-        ax.plot([percentile, percentile],[0,6200000],c='k')
+        ax1.plot([percentile, percentile],[0,6200000],c='k')
     
     # plot variance decomposition for this structure under all-encompassing experiment
-    ax = fig.add_subplot(2,3,4)
+    ax2 = axes[1,0]
     S1_values = pd.read_csv('../Simulation_outputs/' + design + '/'+ structure + '_S1.csv')
-    plotSums(S1_values, ax, colors)
-    ax.set_ylim([0,1])
-    ax.tick_params(axis='both',labelsize=14)
-    ax.set_ylabel('Portion of Variance',fontsize=14)
-    ax.set_xlabel('Shortage Percentile',fontsize=14)
+    plotSums(S1_values, ax2, colors)
+    ax2.set_ylim([0,1])
+    ax2.tick_params(axis='both',labelsize=14)
+    ax2.set_ylabel('Portion of Variance',fontsize=14)
+    ax2.set_xlabel('Shortage Percentile',fontsize=14)
     # add lines at percentiles
     for percentile in percentiles:
-        ax.plot([percentile, percentile],[0,1],c='k')
+        ax2.plot([percentile, percentile],[0,1],c='k')
     
     for i in range(len(percentiles)):
+        # get shortage magnitudes at this percentile
         dta['Shortage'] = syn_magnitude[i,:]
+        # find average shortage across realizations in each SOW
+        avg_dta = dta.groupby(['mu0','mu1','sigma0','sigma1','p00','p11'],as_index=False)[['Shortage']].mean()
         percentile_scores = R2_scores[str(int(percentiles[i]-1))]
         if percentile_scores[0] > 0:
+            # get top two predictors of shortage
             top_two = list(np.argsort(percentile_scores)[::-1][:2]) # sorts from lowest to highest so take last two
             predictors = list([param_names[top_two[1]],param_names[top_two[0]]])
-            dta['Interaction'] = dta[predictors[0]]*dta[predictors[1]]
-            result = fitOLS_interact(dta, predictors)
+            avg_dta['Interaction'] = avg_dta[predictors[0]]*avg_dta[predictors[1]]
+            # fit OLS model with top two predictors and their interaction
+            result = fitOLS_interact(avg_dta, predictors)
             xgrid = np.arange(param_bounds[top_two[1]][0], param_bounds[top_two[1]][1], \
             	    np.around((param_bounds[top_two[1]][1]-param_bounds[top_two[1]][0])/100,decimals=4))
             ygrid = np.arange(param_bounds[top_two[0]][0], param_bounds[top_two[0]][1], \
             	    np.around((param_bounds[top_two[0]][1]-param_bounds[top_two[0]][0])/100,decimals=4))
             
-            ax = fig.add_subplot(2,3,i+2)
-            plotResponseSurface(ax, result, dta, CMIP, Paleo, shortage_cmap, shortage_cmap, \
+            # plot average shortage in each SOW and prediction from regression
+            plotResponseSurface(axes[0,i+1], result, avg_dta, CMIP, Paleo, shortage_cmap, shortage_cmap, \
             	xgrid, ygrid, predictors[0], predictors[1], otherSOWs = False)
-            ax.set_title(str(percentiles[i]) + 'th Percentile')
+            axes[0,i+1].set_title(str(percentiles[i]) + 'th Percentile',fontsize=16)
+            fig.savefig('Figure8_ResponseSurfaces.pdf')
             
-            ax = fig.add_subplot(2,3,i+5)
-            plotResponseSurface(ax, result, dta, CMIP, Paleo, shortage_cmap, shortage_cmap, \
+            # plot prediction from regression with CMIP and Paleo samples on top
+            plotResponseSurface(axes[1,i+1], result, avg_dta, CMIP, Paleo, shortage_cmap, shortage_cmap, \
             	xgrid, ygrid, predictors[0], predictors[1], otherSOWs = True)
-
+            fig.savefig('Figure8_ResponseSurfaces.pdf')
+                
     fig.savefig('Figure8_ResponseSurfaces.pdf')
     fig.clf()
     
@@ -150,7 +156,7 @@ def plotResponseSurface(ax, result, dta, CMIP, Paleo, contour_cmap, dot_cmap, \
         cbar = ax.figure.colorbar(contourset, ax=ax)
     else:
         ax.scatter(dta[xvar].values, dta[yvar].values, c=dta['Shortage'].values, edgecolor='none', cmap=dot_cmap, norm=norm, s=10)
-        cbar = ax.figure.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=contour_cmap))
+        cbar = ax.figure.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=contour_cmap), ax=ax)
         
     ax.set_xlim(np.nanmin(X),np.nanmax(X))
     ax.set_ylim(np.nanmin(Y),np.nanmax(Y))

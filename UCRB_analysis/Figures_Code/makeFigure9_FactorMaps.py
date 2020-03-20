@@ -33,7 +33,7 @@ def makeFigure9_FactorMaps():
     hist_short[hist_short < 0] = np.nan
     
     # load shortage data for this experimental design
-    SYN_short = np.load('../../../Simulation_outputs/' + design + '/' + structure + '_info.npy')
+    SYN_short = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
     # remove columns for year (0) and demand (odd columns) and convert acre-ft to m^3
     SYN_short = SYN_short[:,idx,:]*1233.48
     SYN_short = SYN_short[:,:,rows_to_keep]
@@ -46,37 +46,44 @@ def makeFigure9_FactorMaps():
     dta = pd.DataFrame(data = np.repeat(samples, nrealizations, axis = 0), columns=param_names)
     
     
-    fig = plt.figure()
+    fig, axes = plt.subplots(2,4,figsize=(24.3,9.1))
+    fig.subplots_adjust(hspace=0.5,right=0.8,wspace=0.5)        
     # plot shortage distribution for this structure under all-encompassing experiment
-    ax = fig.add_subplot(2,4,1)
-    handles, labels = plotSDC(ax, SYN_short, hist_short, nsamples, nrealizations)
-    ax.set_ylim([0,6200000])
-    ax.ticklabel_format(style='sci', axis='y', scilimits=(6,6))
-    ax.tick_params(axis='both',labelsize=14)
-    ax.set_ylabel('Shortage (m' + r'$^3$' + ')',fontsize=14)
+    ax1 = axes[0,0]
+    handles, labels = plotSDC(ax1, SYN_short, hist_short, nsamples, nrealizations)
+    ax1.set_ylim([0,6200000])
+    ax1.ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+    ax1.tick_params(axis='both',labelsize=14)
+    ax1.set_ylabel('Shortage (m' + r'$^3$' + ')',fontsize=14)
     # add lines at percentiles
     for percentile in percentiles:
-        ax.plot([percentile, percentile],[0,6200000],c='k')
+        ax1.plot([percentile, percentile],[0,6200000],c='k')
     
     # plotfailure heatmap for this structure under all-encompassing experiment
-    ax = fig.add_subplot(2,4,5)
-    allSOWs, historic_percents, frequencies, magnitudes, gridcells, im = plotFailureHeatmap(ax, design, structure)
-    addPercentileBlocks(historic_percents, gridcells, percentiles)
+    ax2 = axes[1,0]
+    allSOWs, historic_percents, frequencies, magnitudes, gridcells, im = plotFailureHeatmap(ax2, design, structure)
+    addPercentileBlocks(historic_percents, gridcells, percentiles, ax2)
     allSOWsperformance = allSOWs/100
     historic_percents = [roundup(x) for x in historic_percents]
     all_pseudo_r_scores = calcPseudoR2(frequencies, magnitudes, params_no, allSOWsperformance, dta, structure, design)
     
     for i in range(len(percentiles)):
         for j in range(3):
+            # magnitude of shortage at this percentile to plot
             h = np.where(np.array(historic_percents) == 100 - percentiles[i])[0][0]
             if j == 0:
                 h -= 2
             elif j == 2:
                 h += 2
+            # find out if each realization was a success or failure at this magnitude/frequency combination
             dta['Success'] = allSOWsperformance[list(frequencies).index(100-percentiles[i]),h,:]
+            # consider each SOW a success if 50% or more realizations were a success
+            avg_dta = dta.groupby(['mu0','mu1','sigma0','sigma1','p00','p11'],as_index=False)[['Success']].mean()
+            avg_dta.loc[np.where(avg_dta['Success']>=0.5)[0],'Success'] = 1
+            avg_dta.loc[np.where(avg_dta['Success']<0.5)[0],'Success'] = 0
+            # load pseudo R2 of predictors for this magnitude/frequency combination
             pseudo_r_scores = all_pseudo_r_scores[str((100-percentiles[i]))+'yrs_'+str(magnitudes[h])+'prc'].values
             if pseudo_r_scores.any():
-                ax = fig.add_subplot(2,4,i*4+j+2)
                 top_predictors = np.argsort(pseudo_r_scores)[::-1][:2]
                 ranges = param_bounds[top_predictors]
                 # define grid of x (1st predictor), and y (2nd predictor) dimensions
@@ -86,14 +93,16 @@ def makeFigure9_FactorMaps():
                 ygrid = np.arange(param_bounds[top_predictors[1]][0], 
                                   param_bounds[top_predictors[1]][1], np.around((ranges[1][1]-ranges[1][0])/100,decimals=4))
                 all_predictors = [ dta.columns.tolist()[k] for k in top_predictors]
-                dta['Interaction'] = dta[all_predictors[0]]*dta[all_predictors[1]]
-                result = fitLogit_interact(dta, [all_predictors[k] for k in [0,1]])
-                contourset = plotFactorMap(ax, result, dta, probability_cmap, success_cmap, contour_levels, xgrid, ygrid, \
-                              all_predictors[0], all_predictors[1])
-                ax.set_title("Success if " + str(magnitudes[h]) + "% shortage\n<" + str((100-percentiles[i])) + "% of the time", fontsize=16)
+                # fit logistic regression model with top two predictors of success and their interaction
+                avg_dta['Interaction'] = avg_dta[all_predictors[0]]*dta[all_predictors[1]]
+                result = fitLogit_interact(avg_dta, [all_predictors[k] for k in [0,1]])
                 
-    fig.subplots_adjust(hspace=0.5,right=0.8,wspace=0.5)  
-    fig.set_size_inches([24.3,9.1])              
+                # plot success/failure for each SOW on top of logistic regression estimate of probability of success
+                contourset = plotFactorMap(axes[i,j+1], result, avg_dta, probability_cmap, success_cmap, contour_levels, xgrid, ygrid, \
+                              all_predictors[0], all_predictors[1])
+                axes[i,j+1].set_title("Success if " + str(magnitudes[h]) + "% shortage\n<" + str((100-percentiles[i])) + "% of the time", fontsize=16)
+                fig.savefig('Figure9_FactorMaps.pdf')
+                
     cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
     cbar = fig.colorbar(contourset, cax=cbar_ax)
     cbar.ax.set_ylabel("Predicted Probability of Success", rotation=-90, va="bottom",fontsize=16)
@@ -103,19 +112,19 @@ def makeFigure9_FactorMaps():
     
     return None
 
-def highlight_cell(x,y, ax=None, **kwargs):
+def highlight_cell(x,y, ax, **kwargs):
     rect = plt.Rectangle((x-.5, y-.5), 1,1, fill=False, **kwargs)
     ax = ax or plt.gca()
     ax.add_patch(rect)
     return rect
 
-def addPercentileBlocks(historic_percents, gridcells, percentiles):    
+def addPercentileBlocks(historic_percents, gridcells, percentiles, ax):    
     for i in range(len(historic_percents)):
         if historic_percents[i] != 0:
-            highlight_cell(i, gridcells[i], color="orange", linewidth=2)
+            highlight_cell(i, gridcells[i], ax, color="orange", linewidth=2)
             if (9-gridcells[i])*10 in percentiles:
-                highlight_cell(i-2, gridcells[i], color="black", linewidth=2)
-                highlight_cell(i+2, gridcells[i], color="black", linewidth=2)
+                highlight_cell(i-2, gridcells[i], ax, color="black", linewidth=2)
+                highlight_cell(i+2, gridcells[i], ax, color="black", linewidth=2)
                 
     return None
 

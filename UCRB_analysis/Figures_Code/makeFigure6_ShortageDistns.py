@@ -31,7 +31,7 @@ def makeFigure6_ShortageDistns():
             nsamples[i] = len(rows_to_keep) # after removing those out of bounds after reclassification
             
             # load shortage data for this experimental design
-            SYN_short = np.load('../../../Simulation_outputs/' + design + '/' + structure + '_info.npy')
+            SYN_short = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
             # remove columns for year (0) and demand (odd columns) and convert acre-ft to ^3
             SYN_short = SYN_short[:,idx,:]*1233.48
             SYN_short = SYN_short[:,:,rows_to_keep]
