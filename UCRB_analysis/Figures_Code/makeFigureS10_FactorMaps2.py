@@ -68,8 +68,7 @@ def makeFigureS10_FactorMaps2():
     addPercentileBlocks(historic_percents, gridcells, percentiles, short_magnitudes, ax2)
     allSOWsperformance = allSOWs/100
     historic_percents = [roundup(x) for x in historic_percents]
-    #all_pseudo_r_scores = calcPseudoR2(frequencies, magnitudes, params_no, allSOWsperformance, dta, structure, design)
-    all_pseudo_r_scores = pd.read_csv("../Simulation_outputs/" + design + "/" + structure + "_pseudo_r_scores.csv")
+    all_pseudo_r_scores = calcPseudoR2(frequencies, magnitudes, params_no, allSOWsperformance, dta, structure, design)
     
     for i in range(len(percentiles)):
         dta['Success'] = allSOWsperformance[list(frequencies).index(100-percentiles[i]),int(short_magnitudes[i]/10)-1,:]

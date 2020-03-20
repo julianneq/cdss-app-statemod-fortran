@@ -204,7 +204,7 @@ def Sobol_per_structure(design, ID):
     S1.index=S1_conf.index = R2_scores.index = param_names
     
     # load shortage data for this experimental design
-    SYN_short = np.load('../../../Simulation_outputs/' + design + '/' + ID + '_info.npy')
+    SYN_short = np.load('../Simulation_outputs/' + design + '/' + ID + '_info.npy')
     # remove columns for year (0) and demand (odd columns) and convert to m^3
     SYN_short = SYN_short[:,idx,:]*1233.48
     SYN_short = SYN_short[:,:,rows_to_keep]
@@ -273,7 +273,7 @@ def calcFailureHeatmap(design, ID):
     allSOWs = np.zeros([len(frequencies), len(magnitudes), nsamples*nrealizations])
     
     # load demand and shortage data for this experimental design and convert acre-ft to m^3
-    data = np.load('../../../Simulation_outputs/' + design + '/' + ID + '_info.npy')
+    data = np.load('../Simulation_outputs/' + design + '/' + ID + '_info.npy')
     demands = data[:,idx_demand,:]*1233.48
     shortages = data[:,idx_shortage,:]*1233.48
     demands = demands[:,:,rows_to_keep]
