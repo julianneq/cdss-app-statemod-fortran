@@ -4,7 +4,7 @@
 #SBATCH --nodes=15             # specify number of nodes
 #SBATCH --ntasks-per-node=24  # specify number of core per node
 #SBATCH --export=ALL
-#SBATCH -t 4:00:00            # set max wallclock time
+#SBATCH -t 6:00:00            # set max wallclock time
 #SBATCH --job-name="get_hist_info" # name your job
 #SBATCH --output="get_hist_info.out"
 #SBATCH --mail-user=jdq2101@gmail.com
@@ -17,5 +17,7 @@ module load mpi4py
 export MV2_ENABLE_AFFINITY=0
 ibrun python3 get_hist_info.py LHsamples_original_1000_AnnQonly
 ibrun python3 get_hist_info.py LHsamples_wider_1000_AnnQonly
+ibrun python3 get_hist_info.py LHsamples_original_100_AnnQonly
+ibrun python3 get_hist_info.py LHsamples_wider_100_AnnQonly
 ibrun python3 get_hist_info.py CMIPunscaled_SOWs
 ibrun python3 get_hist_info.py Paleo_SOWs

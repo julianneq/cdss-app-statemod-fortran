@@ -3,11 +3,10 @@ from mpi4py import MPI
 import math
 
 # Experimental designs
-designs = ['LHsamples_original_1000_AnnQonly','LHsamples_original_200_AnnQonly',\
-           'LHsamples_narrowed_1000_AnnQonly','LHsamples_narrowed_200_AnnQonly',\
-           'LHsamples_wider_1000_AnnQonly','LHsamples_wider_200_AnnQonly',\
+designs = ['LHsamples_original_1000_AnnQonly','LHsamples_original_100_AnnQonly',\
+           'LHsamples_wider_1000_AnnQonly','LHsamples_wider_100_AnnQonly',\
            'CMIP_SOWs','CMIPunscaled_SOWs','Paleo_SOWs']
-nSamples = [1000, 200, 1000, 200, 1000, 200, 209, 97, 366]
+nSamples = [1000, 100, 1000, 100, 209, 97, 366]
 
 # Begin parallel simulation
 comm = MPI.COMM_WORLD

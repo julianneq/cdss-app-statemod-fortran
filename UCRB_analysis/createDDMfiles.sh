@@ -4,7 +4,7 @@
 #SBATCH --nodes=17             # specify number of nodes
 #SBATCH --ntasks-per-node=24  # specify number of core per node
 #SBATCH --export=ALL
-#SBATCH -t 4:00:00            # set max wallclock time
+#SBATCH -t 1:00:00            # set max wallclock time
 #SBATCH --job-name="createDDMs" # name your job
 #SBATCH --output="createDDMs.out"
 #SBATCH --mail-user=jdq2101@gmail.com
@@ -17,5 +17,7 @@ module load mpi4py
 export MV2_ENABLE_AFFINITY=0
 ibrun python3 createDDMfiles.py LHsamples_original_1000_AnnQonly
 ibrun python3 createDDMfiles.py LHsamples_wider_1000_AnnQonly
+ibrun python3 createDDMfiles.py LHsamples_original_100_AnnQonly
+ibrun python3 createDDMfiles.py LHsamples_wider_100_AnnQonly
 ibrun python3 createDDMfiles.py Paleo_SOWs
 ibrun python3 createDDMfiles.py CMIPunscaled_SOWs

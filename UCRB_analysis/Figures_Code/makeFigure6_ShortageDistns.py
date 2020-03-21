@@ -15,13 +15,15 @@ def makeFigure6_ShortageDistns():
     titles = ['Box Around Historical','CMIP','Paleo','All-Encompassing']
     structures = ['53_ADC022','7200645']
     nrealizations = 10
-    idx = np.arange(2,22,2)
+    short_idx = np.arange(2,22,2)
+    demand_idx = np.arange(1,21,2)
     
     fig = plt.figure()
     count = 1 # subplot counter
     for structure in structures:
-        # load historical shortage data and convert acre-ft to m^3
+        # load historical shortage and demand data and convert acre-ft to m^3
         hist_short = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,2]*1233.48
+        hist_demand = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,1]*1233.48
         # replace failed runs with np.nan (currently -999.9)
         hist_short[hist_short < 0] = np.nan
         for i, design in enumerate(designs):
@@ -31,18 +33,22 @@ def makeFigure6_ShortageDistns():
             nsamples[i] = len(rows_to_keep) # after removing those out of bounds after reclassification
             
             # load shortage data for this experimental design
-            SYN_short = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
-            # remove columns for year (0) and demand (odd columns) and convert acre-ft to ^3
-            SYN_short = SYN_short[:,idx,:]*1233.48
+            SYN = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
+            # extract columns for year shortage and demand and convert acre-ft to ^3
+            SYN_short = SYN[:,short_idx,:]*1233.48
+            SYN_demand = SYN[:,demand_idx,:]*1233.48
+            # use just the samples within the experimental design
             SYN_short = SYN_short[:,:,rows_to_keep]
+            SYN_demand = SYN_demand[:,:,rows_to_keep]
             # reshape into 12*nyears x nsamples*nrealizations
             SYN_short = SYN_short.reshape([np.shape(SYN_short)[0],np.shape(SYN_short)[1]*np.shape(SYN_short)[2]])
+            SYN_demand = SYN_demand.reshape([np.shape(SYN_demand)[0],np.shape(SYN_demand)[1]*np.shape(SYN_demand)[2]])
             # replace failed runs with np.nan (currently -999.9)
             SYN_short[SYN_short < 0] = np.nan
             
             # plot shortage distribution
             ax = fig.add_subplot(2,4,count)
-            handles, labels = plotSDC(ax, SYN_short, hist_short, nsamples[i], nrealizations)
+            handles, labels = plotSDC(ax, SYN_short, SYN_demand, hist_short, hist_demand, nsamples[i], nrealizations)
             
             # only put labels on bottom row/left column, make y ranges consistent, title experiment
             if count == 1 or count == 5:
@@ -83,23 +89,33 @@ def alpha(i, base=0.2):
         ar.append(l(ar[-1]))
     return ar[-1]
   
-def plotSDC(ax, SYN_short, hist_short, nsamples, nrealizations):
+def plotSDC(ax, SYN_short, SYN_demand, hist_short, hist_demand, nsamples, nrealizations, ratios=False):
     n = 12 # number of months
-    #Reshape historic data to a [no. years x no. months] matrix
-    f_hist = np.reshape(hist_short, (int(np.size(hist_short)/n), n))
-    #Reshape to annual totals
-    f_hist_totals = np.sum(f_hist,1)  
+    #Reshape historic shortage and demand data to a [no. years x no. months] matrix
+    f_hist_s = np.reshape(hist_short, (int(np.size(hist_short)/n), n))
+    f_hist_d = np.reshape(hist_demand, (int(np.size(hist_demand)/n), n))
+    #Reshape to annual totals/ratios
+    if ratios == False:
+        f_hist_totals = np.sum(f_hist_s,1)
+    else:
+        f_hist_totals = np.sum(f_hist_s,1)/np.sum(f_hist_d,1)
+
     #Calculate historical shortage duration curves
     F_hist = np.sort(f_hist_totals) # for inverse sorting add this at the end [::-1]
     
     #Reshape synthetic data
     #Create matrix of [no. years x no. months x no. samples]
-    synthetic_global = np.zeros([int(np.size(hist_short)/n),n,nsamples*nrealizations])
+    synthetic_global_s = np.zeros([int(np.size(hist_short)/n),n,nsamples*nrealizations])
+    synthetic_global_d = np.zeros([int(np.size(hist_demand)/n),n,nsamples*nrealizations])
     # Loop through every SOW and reshape to [no. years x no. months]
     for j in range(nsamples*nrealizations):
-        synthetic_global[:,:,j]= np.reshape(SYN_short[:,j], (int(np.size(SYN_short[:,j])/n), n))
-    #Reshape to annual totals
-    synthetic_global_totals = np.sum(synthetic_global,1)
+        synthetic_global_s[:,:,j]= np.reshape(SYN_short[:,j], (int(np.size(SYN_short[:,j])/n), n))
+        synthetic_global_d[:,:,j]= np.reshape(SYN_demand[:,j], (int(np.size(SYN_demand[:,j])/n), n))
+    #Reshape to annual totals/ratios
+    if ratios == False:
+        synthetic_global_totals = np.sum(synthetic_global_s,1)
+    else:
+        synthetic_global_totals = np.sum(synthetic_global_s,1)/np.sum(synthetic_global_d,1)
     
     p=np.arange(100,-10,-10)
     

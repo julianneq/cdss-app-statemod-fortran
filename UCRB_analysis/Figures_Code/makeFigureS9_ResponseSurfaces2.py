@@ -15,7 +15,8 @@ def makeFigureS9_ResponseSurfaces2():
     # constants, vectors
     design = 'LHsamples_wider_1000_AnnQonly'
     structure = '7200645'
-    idx = np.arange(2,22,2)
+    short_idx = np.arange(2,22,2)
+    demand_idx = np.arange(1,21,2)
     percentiles = [50, 90]
     nrealizations = 10
     nyears = 105
@@ -32,20 +33,25 @@ def makeFigureS9_ResponseSurfaces2():
     
     # load historical shortage data and convert acre-ft to m^3
     hist_short = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,2]*1233.48
+    hist_demand = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,1]*1233.48
     # replace failed runs with np.nan (currently -999.9)
     hist_short[hist_short < 0] = np.nan
     
     # load shortage data for this experimental design
-    SYN_short = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
-    # remove columns for year (0) and demand (odd columns) and convert acre-ft to m^3
-    SYN_short = SYN_short[:,idx,:]*1233.48
+    SYN = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
+    # extract columns for year shortage and demand and convert acre-ft to ^3
+    SYN_short = SYN[:,short_idx,:]*1233.48
+    SYN_demand = SYN[:,demand_idx,:]*1233.48
+    # use just the samples within the experimental design
     SYN_short = SYN_short[:,:,rows_to_keep]
+    SYN_demand = SYN_demand[:,:,rows_to_keep]
     # replace failed runs with np.nan (currently -999.9)
     SYN_short[SYN_short < 0] = np.nan
     # Identify droughts at percentiles
     syn_magnitude = calc_syn_magnitude(nyears, nmonths, nrealizations, nsamples, percentiles, SYN_short)
     # reshape synthetic shortage data into 12*nyears x nsamples*nrealizations
     SYN_short = SYN_short.reshape([np.shape(SYN_short)[0],np.shape(SYN_short)[1]*np.shape(SYN_short)[2]])
+    SYN_demand = SYN_demand.reshape([np.shape(SYN_demand)[0],np.shape(SYN_demand)[1]*np.shape(SYN_demand)[2]])
     
     # create data frames of shortage and SOWs
     CMIPsamples = np.loadtxt('../Qgen/CMIPunscaled_SOWs.txt')[:,7:13]
@@ -60,14 +66,14 @@ def makeFigureS9_ResponseSurfaces2():
     fig.subplots_adjust(hspace=0.3,wspace=0.3)
     # plot shortage distribution for this structure under all-encompassing experiment
     ax1 = axes[0,0]
-    handles, labels = plotSDC(ax1, SYN_short, hist_short, nsamples, nrealizations)
+    handles, labels = plotSDC(ax1, SYN_short, SYN_demand, hist_short, hist_demand, nsamples, nrealizations)
     ax1.set_ylim(0,370000000)
     ax1.ticklabel_format(style='sci', axis='y', scilimits=(6,6))
     ax1.tick_params(axis='both',labelsize=14)
     ax1.set_ylabel('Shortage (m' + r'$^3$' + ')',fontsize=14)
     # add lines at percentiles
     for percentile in percentiles:
-        ax1.plot([percentile, percentile],[0,6200000],c='k')
+        ax1.plot([percentile, percentile],[0,370000000],c='k')
     
     # plot variance decomposition for this structure under all-encompassing experiment
     ax2 = axes[1,0]

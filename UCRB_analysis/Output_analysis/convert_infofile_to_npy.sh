@@ -4,7 +4,7 @@
 #SBATCH --nodes=15             # specify number of nodes
 #SBATCH --ntasks-per-node=24  # specify number of core per node
 #SBATCH --export=ALL
-#SBATCH -t 1:00:00            # set max wallclock time
+#SBATCH -t 2:00:00            # set max wallclock time
 #SBATCH --job-name="convert_infofile" # name your job
 #SBATCH --output="convert_infofile.out"
 #SBATCH --mail-user=jdq2101@gmail.com
@@ -17,6 +17,8 @@ module load mpi4py
 export MV2_ENABLE_AFFINITY=0
 ibrun python3 convert_infofile_to_npy.py LHsamples_original_1000_AnnQonly 1000
 ibrun python3 convert_infofile_to_npy.py LHsamples_wider_1000_AnnQonly 1000
+ibrun python3 convert_infofile_to_npy.py LHsamples_original_100_AnnQonly 1000
+ibrun python3 convert_infofile_to_npy.py LHsamples_wider_100_AnnQonly 1000
 ibrun python3 convert_infofile_to_npy.py Paleo_SOWs 366
 # ibrun python3 convert_infofile_to_npy.py CMIP_SOWs 209
 ibrun python3 convert_infofile_to_npy.py CMIPunscaled_SOWs 97

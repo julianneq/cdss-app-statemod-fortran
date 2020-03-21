@@ -4,7 +4,7 @@
 #SBATCH --nodes=1             # specify number of nodes
 #SBATCH --ntasks-per-node=5  # specify number of core per node
 #SBATCH --export=ALL
-#SBATCH -t 8:00:00            # set max wallclock time
+#SBATCH -t 12:00:00            # set max wallclock time
 #SBATCH --job-name="LR_Interact" # name your job
 #SBATCH --output="LR_Interact.out"
 #SBATCH --mail-user=jdq2101@gmail.com
@@ -17,5 +17,7 @@ module load mpi4py
 export MV2_ENABLE_AFFINITY=0
 ibrun python3 makeLRinteractionPlot.py LHsamples_original_1000_AnnQonly
 ibrun python3 makeLRinteractionPlot.py LHsamples_wider_1000_AnnQonly
+ibrun python3 makeLRinteractionPlot.py LHsamples_original_100_AnnQonly
+ibrun python3 makeLRinteractionPlot.py LHsamples_wider_100_AnnQonly
 ibrun python3 makeLRinteractionPlot.py CMIPunscaled_SOWs
 ibrun python3 makeLRinteractionPlot.py Paleo_SOWs

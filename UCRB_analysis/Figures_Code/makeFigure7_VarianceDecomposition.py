@@ -22,15 +22,15 @@ def makeFigure7_VarianceDecomposition():
     Interact = plt.Rectangle((0,0), 1, 1, fc=colors[6], edgecolor='none')
     
     # perform variance decomposition
-    for structure in structures:
-        for i, design in enumerate(designs):
-            Sobol_per_structure(design, structure)
+    #for structure in structures:
+    #    for i, design in enumerate(designs):
+    #        Sobol_per_structure(design, structure)
     
     # plot variance decomposition
     fig = plt.figure()
     count = 1 # subplot counter
     for structure in structures:
-        for i, design in enumerate(designs):
+        for design in designs:
             # load sensitivity indices
             S1_values = pd.read_csv('../Simulation_outputs/' + design + '/'+ structure + '_S1.csv')
             
@@ -52,9 +52,10 @@ def makeFigure7_VarianceDecomposition():
     fig.subplots_adjust(bottom=0.22)
     fig.text(0.5, 0.15, 'Percentile of Shortage', ha='center', fontsize=16)
     fig.text(0.05, 0.5, 'Portion of Variance Explained', va='center', rotation=90, fontsize=16)
-    fig.legend([mu0,sigma0,mu1,sigma1,p00,p11,Interact],\
+    legend = fig.legend([mu0,sigma0,mu1,sigma1,p00,p11,Interact],\
                       [r'$\mu_0$',r'$\sigma_0$',r'$\mu_1$',r'$\sigma_1$',r'$p_{00}$',r'$p_{11}$','Interactions'],\
                       loc='lower center', ncol=4, fontsize=16, frameon=True)
+    plt.setp(legend.get_title(),fontsize=16)
     fig.savefig('Figure7_VarianceDecomposition.pdf')
     fig.clf()
 

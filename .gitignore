@@ -60,5 +60,5 @@ fort.*
 *.xtb
 *.xwr
 
-#SALib directory because it's not mine to share
-/UCRB_analysis/Analysis_scripts/Output_analysis/SALib/*
+#files too big for github
+*info.npy

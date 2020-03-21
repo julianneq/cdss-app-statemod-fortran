@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from fitHMM import fitHMM
-import scipy.stats as ss
 
 # fit HMM parameters
 def fitParams(flows):
@@ -20,7 +19,7 @@ def fitParams(flows):
     return params
 
 # fit HMM to historical record
-AnnualQ = np.array(pd.DataFrame.from_csv('AnnualQ.csv'))
+AnnualQ = np.array(pd.read_csv('AnnualQ.csv'))
 histParams = fitParams(AnnualQ[35::,-1]) # last 2/3 of record
 
 # IWR, RES, TBD, M_I, Shoshone, ENVflows, EVAdelta, mu0, sigma0, mu1, sigma1, p00, p11, snowshift
@@ -80,7 +79,7 @@ np.savetxt('Paleo_SOWs.txt',Paleo_SOWs)
 
 # remove demand and snowmelt changes from LHsample designs
 def changeOnlyAnnualQ(filename):
-    design = np.loadxt(filename + '.txt')
+    design = np.loadtxt(filename + '.txt')
 
     design[:,0:7] = np.tile(baseSOWparams[0:7],(np.shape(design)[0],1))
     design[:,-1] = np.tile(baseSOWparams[-1],(np.shape(design)[0]))
@@ -89,9 +88,7 @@ def changeOnlyAnnualQ(filename):
 
     return None
 
-changeOnlyAnnualQ('LHsamples_narrowed_200')
-changeOnlyAnnualQ('LHsamples_original_200')
-changeOnlyAnnualQ('LHsamples_wider_200')
-changeOnlyAnnualQ('LHsamples_narrowed_1000')
+changeOnlyAnnualQ('LHsamples_original_100')
+changeOnlyAnnualQ('LHsamples_wider_100')
 changeOnlyAnnualQ('LHsamples_original_1000')
 changeOnlyAnnualQ('LHsamples_wider_1000')

@@ -14,7 +14,8 @@ def makeFigureS10_FactorMaps2():
     # constants, vectors
     design = 'LHsamples_wider_1000_AnnQonly'
     structure = '7200645'
-    idx = np.arange(2,22,2)
+    short_idx = np.arange(2,22,2)
+    demand_idx = np.arange(1,21,2)
     percentiles = [50, 70, 90, 90]
     short_magnitudes = [10, 10, 10, 30]
     nrealizations = 10
@@ -32,18 +33,23 @@ def makeFigureS10_FactorMaps2():
     
     # load historical shortage data and convert acre-ft to m^3
     hist_short = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,2]*1233.48
+    hist_demand = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,1]*1233.48
     # replace failed runs with np.nan (currently -999.9)
     hist_short[hist_short < 0] = np.nan
     
     # load shortage data for this experimental design
-    SYN_short = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
-    # remove columns for year (0) and demand (odd columns) and convert acre-ft to m^3
-    SYN_short = SYN_short[:,idx,:]*1233.48
+    SYN = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
+    # extract columns for year shortage and demand and convert acre-ft to ^3
+    SYN_short = SYN[:,short_idx,:]*1233.48
+    SYN_demand = SYN[:,demand_idx,:]*1233.48
+    # use just the samples within the experimental design
     SYN_short = SYN_short[:,:,rows_to_keep]
+    SYN_demand = SYN_demand[:,:,rows_to_keep]
     # replace failed runs with np.nan (currently -999.9)
     SYN_short[SYN_short < 0] = np.nan
     # reshape synthetic shortage data into 12*nyears x nsamples*nrealizations
     SYN_short = SYN_short.reshape([np.shape(SYN_short)[0],np.shape(SYN_short)[1]*np.shape(SYN_short)[2]])
+    SYN_demand = SYN_demand.reshape([np.shape(SYN_demand)[0],np.shape(SYN_demand)[1]*np.shape(SYN_demand)[2]])
     
     # create data frames of shortage and SOWs
     dta = pd.DataFrame(data = np.repeat(samples, nrealizations, axis = 0), columns=param_names)
@@ -53,14 +59,14 @@ def makeFigureS10_FactorMaps2():
     fig.subplots_adjust(hspace=0.5,right=0.8,wspace=0.5)  
     # plot shortage distribution for this structure under all-encompassing experiment
     ax1 = axes[0,0]
-    handles, labels = plotSDC(ax1, SYN_short, hist_short, nsamples, nrealizations)
-    ax1.set_ylim([0,370000000])
-    ax1.ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+    handles, labels = plotSDC(ax1, SYN_short, SYN_demand, hist_short, hist_demand, nsamples, nrealizations, True)
+    ax1.set_ylim([0,1])
     ax1.tick_params(axis='both',labelsize=14)
-    ax1.set_ylabel('Shortage (m' + r'$^3$' + ')',fontsize=14)
+    ax1.set_ylabel('Shortage/Demand',fontsize=14)
+    ax1.set_xlabel('Shortage Percentile',fontsize=14)
     # add lines at percentiles
     for percentile in percentiles:
-        ax1.plot([percentile, percentile],[0,370000000],c='k')
+        ax1.plot([percentile, percentile],[0,1],c='k')
     
     # plotfailure heatmap for this structure under all-encompassing experiment
     ax2 = axes[1,0]
@@ -68,7 +74,8 @@ def makeFigureS10_FactorMaps2():
     addPercentileBlocks(historic_percents, gridcells, percentiles, short_magnitudes, ax2)
     allSOWsperformance = allSOWs/100
     historic_percents = [roundup(x) for x in historic_percents]
-    all_pseudo_r_scores = calcPseudoR2(frequencies, magnitudes, params_no, allSOWsperformance, dta, structure, design)
+    #all_pseudo_r_scores = calcPseudoR2(frequencies, magnitudes, params_no, allSOWsperformance, dta, structure, design)
+    all_pseudo_r_scores = pd.read_csv("../Simulation_outputs/" + design + "/" + structure + "_pseudo_r_scores.csv")
     
     for i in range(len(percentiles)):
         dta['Success'] = allSOWsperformance[list(frequencies).index(100-percentiles[i]),int(short_magnitudes[i]/10)-1,:]
