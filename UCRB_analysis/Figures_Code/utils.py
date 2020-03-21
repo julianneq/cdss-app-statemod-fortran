@@ -145,9 +145,9 @@ def fitLogit_interact(dta, predictors):
 
 def setupProblem(design):
     # set up problem for SALib
-    if design == 'LHsamples_original_1000_AnnQonly':
+    if design == 'LHsamples_original_1000_AnnQonly' or design == 'LHsamples_original_100_AnnQonly':
         param_bounds = np.loadtxt('../Qgen/uncertain_params_original.txt', usecols=(1,2))[7:13,:]
-    elif design == 'LHsamples_wider_1000_AnnQonly':
+    elif design == 'LHsamples_wider_1000_AnnQonly'  or design == 'LHsamples_wider_100_AnnQonly':
         param_bounds = np.loadtxt('../Qgen/uncertain_params_wider.txt', usecols=(1,2))[7:13,:]
     elif design == 'Paleo_SOWs':
     	param_bounds = np.loadtxt('../Qgen/uncertain_params_paleo.txt',usecols=(1,2))[7:13,:]

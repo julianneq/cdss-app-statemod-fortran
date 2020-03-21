@@ -8,7 +8,7 @@ from makeFigure6_ShortageDistns import plotSDC
 from makeFigure7_VarianceDecomposition import plotSums
 from makeFigure8_ResponseSurfaces import plotResponseSurface
 
-def makeFigureS9_ResponseSurfaces2():
+def makeFigureS10_ResponseSurfaces_User2():
 
     sns.set_style("white")
     
@@ -113,7 +113,7 @@ def makeFigureS9_ResponseSurfaces2():
             	xgrid, ygrid, predictors[0], predictors[1], otherSOWs = True)
             fig.savefig('FigureS9_ResponseSurfaces2.pdf')
 
-    fig.savefig('FigureS9_ResponseSurfaces2.pdf')
+    fig.savefig('FigureS10_ResponseSurfaces_User2.pdf')
     fig.clf()
     
     return None

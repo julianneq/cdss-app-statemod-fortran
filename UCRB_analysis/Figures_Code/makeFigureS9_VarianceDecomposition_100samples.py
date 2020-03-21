@@ -4,11 +4,11 @@ import pandas as pd
 import seaborn as sns
 from utils import Sobol_per_structure
 
-def makeFigure7_VarianceDecomposition():
+def makeFigureS9_VarianceDecomposition_100samples():
 
     sns.set_style("white")
     
-    designs = ['LHsamples_original_1000_AnnQonly','CMIPunscaled_SOWs','Paleo_SOWs','LHsamples_wider_1000_AnnQonly']
+    designs = ['LHsamples_original_100_AnnQonly','CMIPunscaled_SOWs','Paleo_SOWs','LHsamples_wider_100_AnnQonly']
     titles = ['Box Around Historical','CMIP','Paleo','All-Encompassing']
     structures = ['53_ADC022','7200645']
     
@@ -56,7 +56,7 @@ def makeFigure7_VarianceDecomposition():
                       [r'$\mu_0$',r'$\sigma_0$',r'$\mu_1$',r'$\sigma_1$',r'$p_{00}$',r'$p_{11}$','Interactions'],\
                       loc='lower center', ncol=4, fontsize=16, frameon=True)
     plt.setp(legend.get_title(),fontsize=16)
-    fig.savefig('Figure7_VarianceDecomposition.pdf')
+    fig.savefig('FigureS9_VarianceDecomposition_100samples.pdf')
     fig.clf()
 
     return None

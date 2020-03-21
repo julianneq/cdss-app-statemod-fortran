@@ -7,7 +7,7 @@ from utils import calcFailureHeatmap, setupProblem, getSamples, fitLogit, fitLog
 from makeFigure6_ShortageDistns import plotSDC
 from makeFigure9_FactorMaps import plotFailureHeatmap, highlight_cell, plotFactorMap
 
-def makeFigureS10_FactorMaps2():
+def makeFigureS11_FactorMaps_User2():
 
     sns.set_style("white")
     
@@ -112,7 +112,7 @@ def makeFigureS10_FactorMaps2():
     cbar = fig.colorbar(contourset, cax=cbar_ax)
     cbar.ax.set_ylabel("Predicted Probability of Success", rotation=-90, va="bottom",fontsize=16)
     cbar.ax.tick_params(labelsize=16)
-    fig.savefig("FigureS10_FactorMaps2.pdf")
+    fig.savefig("FigureS11_FactorMaps_User2.pdf")
     fig.clf()
     
     return None

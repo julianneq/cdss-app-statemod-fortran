@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from makeFigure9_FactorMaps import plotFailureHeatmap, highlight_cell
 
-def makeFigureS11_SatisficingSurfaces():
+def makeFigureS12_SatisficingSurfaces():
     
     designs = ['LHsamples_original_1000_AnnQonly','CMIPunscaled_SOWs','Paleo_SOWs','LHsamples_wider_1000_AnnQonly']
     titles = ['Box Around Historical','CMIP','Paleo','All-Encompassing']
@@ -28,7 +28,7 @@ def makeFigureS11_SatisficingSurfaces():
     cbar.ax.set_ylabel("Predicted Probability of Success", rotation=-90, va="bottom",fontsize=16)
     fig.subplots_adjust(right=0.8,wspace=0.5)
     fig.set_size_inches([18.4,8.5])
-    fig.savefig("FigureS11_SatisficingSurface.pdf")
+    fig.savefig("FigureS12_SatisficingSurface.pdf")
     fig.clf()
     
     return None
