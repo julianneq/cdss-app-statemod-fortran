@@ -86,8 +86,7 @@ LHsamples = LHsamples[rows_to_keep,:]
 samples = len(LHsamples[:,0])
 
 percentiles = np.arange(0,100)
-#all_IDs = np.genfromtxt('../Structures_files/metrics_structures.txt',dtype='str').tolist() 
-all_IDs = np.genfromtxt('../Structures_files/unfinished_structures.txt',dtype='str').tolist() 
+all_IDs = np.genfromtxt('../Structures_files/metrics_structures.txt',dtype='str').tolist() 
 nStructures = len(all_IDs)
 
 # deal with fact that calling result.summary() in statsmodels.api
