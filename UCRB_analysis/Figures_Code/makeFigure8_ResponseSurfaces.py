@@ -94,15 +94,15 @@ def makeFigure8_ResponseSurfaces():
         percentile_scores = R2_scores[str(int(percentiles[i]-1))]
         if percentile_scores[0] > 0:
             # get top two predictors of shortage
-            top_two = list(np.argsort(percentile_scores)[::-1][:2]) # sorts from lowest to highest so take last two
-            predictors = list([param_names[top_two[1]],param_names[top_two[0]]])
+            top_two = list(np.argsort(percentile_scores)[::-1][:2])
+            predictors = list([param_names[top_two[0]],param_names[top_two[1]]])
             avg_dta['Interaction'] = avg_dta[predictors[0]]*avg_dta[predictors[1]]
             # fit OLS model with top two predictors and their interaction
             result = fitOLS_interact(avg_dta, predictors)
-            xgrid = np.arange(param_bounds[top_two[1]][0], param_bounds[top_two[1]][1], \
-            	    np.around((param_bounds[top_two[1]][1]-param_bounds[top_two[1]][0])/100,decimals=4))
-            ygrid = np.arange(param_bounds[top_two[0]][0], param_bounds[top_two[0]][1], \
+            xgrid = np.arange(param_bounds[top_two[0]][0], param_bounds[top_two[0]][1], \
             	    np.around((param_bounds[top_two[0]][1]-param_bounds[top_two[0]][0])/100,decimals=4))
+            ygrid = np.arange(param_bounds[top_two[1]][0], param_bounds[top_two[1]][1], \
+            	    np.around((param_bounds[top_two[1]][1]-param_bounds[top_two[1]][0])/100,decimals=4))
             
             # plot average shortage in each SOW and prediction from regression
             plotResponseSurface(axes[0,i+1], result, avg_dta, CMIP, Paleo, shortage_cmap, shortage_cmap, \

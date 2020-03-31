@@ -93,25 +93,25 @@ def makeFigureS10_ResponseSurfaces_User2():
         avg_dta = dta.groupby(['mu0','mu1','sigma0','sigma1','p00','p11'],as_index=False)[['Shortage']].mean()
         percentile_scores = R2_scores[str(int(percentiles[i]-1))]
         if percentile_scores[0] > 0:
-            top_two = list(np.argsort(percentile_scores)[::-1][:2]) # sorts from lowest to highest so take last two
-            predictors = list([param_names[top_two[1]],param_names[top_two[0]]])
+            top_two = list(np.argsort(percentile_scores)[::-1][:2])
+            predictors = list([param_names[top_two[0]],param_names[top_two[1]]])
             avg_dta['Interaction'] = avg_dta[predictors[0]]*avg_dta[predictors[1]]
             result = fitOLS_interact(avg_dta, predictors)
-            xgrid = np.arange(param_bounds[top_two[1]][0], param_bounds[top_two[1]][1], \
-            	    np.around((param_bounds[top_two[1]][1]-param_bounds[top_two[1]][0])/100,decimals=4))
-            ygrid = np.arange(param_bounds[top_two[0]][0], param_bounds[top_two[0]][1], \
+            xgrid = np.arange(param_bounds[top_two[0]][0], param_bounds[top_two[0]][1], \
             	    np.around((param_bounds[top_two[0]][1]-param_bounds[top_two[0]][0])/100,decimals=4))
+            ygrid = np.arange(param_bounds[top_two[1]][0], param_bounds[top_two[1]][1], \
+            	    np.around((param_bounds[top_two[1]][1]-param_bounds[top_two[1]][0])/100,decimals=4))
             
             # plot average shortage in each SOW and prediction from regression
             plotResponseSurface(axes[0,i+1], result, avg_dta, CMIP, Paleo, shortage_cmap, shortage_cmap, \
             	xgrid, ygrid, predictors[0], predictors[1], otherSOWs = False)
             axes[0,i+1].set_title(str(percentiles[i]) + 'th Percentile',fontsize=16)
-            fig.savefig('FigureS9_ResponseSurfaces2.pdf')
+            fig.savefig('FigureS10_ResponseSurfaces2.pdf')
             
             # plot prediction from regression with CMIP and Paleo samples on top
             plotResponseSurface(axes[1,i+1], result, avg_dta, CMIP, Paleo, shortage_cmap, shortage_cmap, \
             	xgrid, ygrid, predictors[0], predictors[1], otherSOWs = True)
-            fig.savefig('FigureS9_ResponseSurfaces2.pdf')
+            fig.savefig('FigureS10_ResponseSurfaces2.pdf')
 
     fig.savefig('FigureS10_ResponseSurfaces_User2.pdf')
     fig.clf()
