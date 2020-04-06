@@ -5,7 +5,7 @@ import scipy.stats as ss
 import pandas as pd
 import seaborn as sns
 
-def makeFigureS7_VICerrorModel():
+def makeFigureS5_VICerrorModel():
 
     AnnualQ_h = np.loadtxt('../Qgen/AnnualQ.csv',delimiter=',',skiprows=1,usecols=[208])*1233.48 # convert to m^3
     
@@ -79,7 +79,7 @@ def makeFigureS7_VICerrorModel():
     
     fig.subplots_adjust(hspace=0.3,wspace=0.25)
     fig.set_size_inches([15.6,9.6])
-    fig.savefig('FigureS7_VICerrorModel.pdf')
+    fig.savefig('FigureS5_VICerrorModel.pdf')
     fig.clf()
     
     return None

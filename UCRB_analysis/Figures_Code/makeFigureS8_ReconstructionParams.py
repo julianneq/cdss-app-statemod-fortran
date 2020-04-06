@@ -6,7 +6,7 @@ import scipy.stats as ss
 from matplotlib import pyplot as plt
 from utils import fitParams
 
-def makeFigureS6_ReconstructionParams():
+def makeFigureS8_ReconstructionParams():
 
     # load paleo data at Cisco
     Paleo = pd.read_csv('../Qgen/Reconstruction/Cisco_Recon_v_Observed_v_Stateline.csv')
@@ -66,7 +66,7 @@ def makeFigureS6_ReconstructionParams():
     col = allParams.columns.tolist()
     
     fig = sns.pairplot(allParams,hue='Ensemble',corner=True)            
-    plt.savefig('FigureS6_ReconstructionParams.pdf')
+    plt.savefig('FigureS8_ReconstructionParams.pdf')
     plt.clf()
     
     return None

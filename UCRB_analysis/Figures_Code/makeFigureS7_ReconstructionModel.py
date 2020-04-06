@@ -5,7 +5,7 @@ import seaborn as sns
 import scipy.stats as ss
 from matplotlib import pyplot as plt
 
-def makeFigureS5_ReconstructionModel():
+def makeFigureS7_ReconstructionModel():
 
     sns.set()
     
@@ -72,7 +72,7 @@ def makeFigureS5_ReconstructionModel():
     ax.tick_params(axis='both',labelsize=14)
     
     fig.set_size_inches([15.6,9.6])
-    fig.savefig('FigureS5_ReconstructionModel.pdf')
+    fig.savefig('FigureS7_ReconstructionModel.pdf')
     fig.clf()
     
     return None

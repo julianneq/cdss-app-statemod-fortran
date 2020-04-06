@@ -6,7 +6,7 @@ import scipy.stats as ss
 from matplotlib import pyplot as plt
 from utils import fitParams
 
-def makeFigureS8_VICparams():
+def makeFigureS6_VICparams():
 
     AnnualQ_h = np.loadtxt('../Qgen/AnnualQ.csv',delimiter=',',skiprows=1,usecols=[208])*1233.48 # convert to m^3
     
@@ -83,7 +83,7 @@ def makeFigureS8_VICparams():
     sns.set_palette(sns.color_palette(colors))
     
     sns.pairplot(allSamples,hue='Ensemble',corner=True)
-    plt.savefig('FigureS8_VICparams.pdf')
+    plt.savefig('FigureS6_VICparams.pdf')
     plt.clf()
     
     return None

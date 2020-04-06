@@ -57,7 +57,7 @@ def plotTimeSeries(TransformedQ, hidden_states):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     
-    xs = np.arange(len(TransformedQ))+1909
+    xs = np.arange(len(TransformedQ))+1909+35
     masks = hidden_states == 0
     ax.scatter(xs[masks], TransformedQ[masks], c='r', label='Dry State')
     masks = hidden_states == 1
