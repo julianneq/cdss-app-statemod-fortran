@@ -73,9 +73,9 @@ def makeFigure6_ShortageDistns():
     fig.text(0.5, 0.15, 'Percentile', ha='center', fontsize=16)
     fig.text(0.05, 0.5, 'Annual Shortage (m' + r'$^3$' + ')', va='center', rotation=90, fontsize=16)
     fig.subplots_adjust(bottom=0.22)
-    labels_transposed = [labels[0],labels[6],labels[1],labels[7],labels[2],labels[8],labels[3],labels[9],labels[4],labels[10],labels[5]]
-    handles_transposed = [handles[0],handles[6],handles[1],handles[7],handles[2],handles[8],handles[3],handles[9],handles[4],handles[10],handles[5]]
-    legend = fig.legend(handles=handles_transposed, labels=labels_transposed, fontsize=16, loc='lower center', title='Frequency in experiment', ncol=6)
+    labels_transposed = [labels[9],labels[4],labels[8],labels[3],labels[7],labels[2],labels[6],labels[1],labels[5],labels[0]]
+    handles_transposed = [handles[9],handles[4],handles[8],handles[3],handles[7],handles[2],handles[6],handles[1],handles[5],handles[0]]
+    legend = fig.legend(handles=handles_transposed, labels=labels_transposed, fontsize=16, loc='lower center', title='Cumulative frequency in experiment', ncol=5)
     plt.setp(legend.get_title(),fontsize=16)
     fig.savefig('Figure6_ShortageDistns.pdf')
     fig.clf()
@@ -117,7 +117,7 @@ def plotSDC(ax, SYN_short, SYN_demand, hist_short, hist_demand, nsamples, nreali
     else:
         synthetic_global_totals = np.sum(synthetic_global_s,1)/np.sum(synthetic_global_d,1)
     
-    p=np.arange(100,-10,-10)
+    p = np.arange(100,-10,-10)
     
     #Calculate synthetic shortage duration curves
     F_syn = np.empty([int(np.size(hist_short)/n),nsamples*nrealizations])
@@ -136,13 +136,13 @@ def plotSDC(ax, SYN_short, SYN_demand, hist_short, hist_demand, nsamples, nreali
     labels=[]
     color = '#000292'
     for i in range(len(p)):
-        ax.fill_between(P, np.min(F_syn[:,:],1), np.percentile(F_syn[:,:], p[i], axis=1), color=color, alpha = 0.1)
-        ax.plot(P, np.percentile(F_syn[:,:], p[i], axis=1), linewidth=0.5, color=color, alpha = 0.3)
+        ax.fill_between(P, np.min(F_syn[:,:],1), np.percentile(F_syn[:,:], p[i], axis=1), color=color, alpha=0.1)
+        ax.plot(P, np.percentile(F_syn[:,:], p[i], axis=1), linewidth=0.5, color=color, alpha=0.3)
         handle = matplotlib.patches.Rectangle((0,0),1,1, color=color, alpha=alpha(i, base=0.1))
         handles.append(handle)
-        label = "{:.0f} %".format(100-p[i])
+        label = str(int(p[i]-10)) + "-" + str(int(p[i])) + "%"
         labels.append(label)
-    ax.plot(P,F_hist, c='black', linewidth=2, label='Historical record')
+    ax.plot(P, F_hist, c='black', linewidth=2, label='Historical record')
     ax.set_xlim(1,100)
     
     return handles, labels
