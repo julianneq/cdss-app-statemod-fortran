@@ -10,7 +10,7 @@ def makeFigure10_RobustnessRanks():
     nstructures = np.shape(allRobustness)[2]
     colors=['#fb8072','#ffffb3','#b3de69','#bebada'] # original, CMIP, paleo, wider
     colOrder = [0,2,3,1] # order of columns to plot
-    labels = ['Box Around Historical','CMIP','Paleo','All Encompassing']
+    labels = ['Box Around Historical','CMIP','Paleo','All-Encompassing']
     design = 'LHsamples_wider_1000_AnnQonly'
     structure = '53_ADC022'
             
@@ -32,12 +32,12 @@ def makeFigure10_RobustnessRanks():
                            color=colors[k],label=labels[k])
     
         if i == 2:
-            ax.set_xlabel('Robustness Rank in\n"All Encompassing" Experiment',fontsize=16)
+            ax.set_xlabel('Robustness Rank in\nAll-Encompassing Experiment',fontsize=16)
         elif i == 0:
             ax.set_ylabel('Robustness Rank in\neach Experiment',fontsize=16)
             
         ax.tick_params(axis='both',labelsize=14)
-        ax.set_title('% of SOWs with ' + str(mags[i]) + '% shortage\n<10% of the time',fontsize=18)
+        ax.set_title('<' + str(mags[i]) + '% shortage <10% of the time',fontsize=18)
      
     for j in range(len(freqs)):
         ax = fig.add_subplot(2,3,j+4)
@@ -52,8 +52,8 @@ def makeFigure10_RobustnessRanks():
             ax.set_ylabel('Robustness Rank in\neach Experiment',fontsize=16)
             
         ax.tick_params(axis='both',labelsize=14)
-        ax.set_title('% of SOWs with 10% shortage\n<' + str(freqs[j]) + '% of the time',fontsize=18)
-        ax.set_xlabel('Robustness Rank in\n"All Encompassing" Experiment',fontsize=16)
+        ax.set_title('<10% shortage <' + str(freqs[j]) + '% of the time',fontsize=18)
+        ax.set_xlabel('Robustness Rank in\nAll-Encompassing Experiment',fontsize=16)
     
     handles, labels = ax.get_legend_handles_labels()
         

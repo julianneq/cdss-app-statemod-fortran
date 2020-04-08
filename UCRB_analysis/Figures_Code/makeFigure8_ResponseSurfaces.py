@@ -130,9 +130,9 @@ def getLabels(variable):
     elif variable == 'sigma1':
         label = r'$\sigma_1$' + ' Multiplier'
     elif variable == 'p00':
-        label = r'$p_{00}$' + ' Delta'
+        label = r'$p_{0,0}$' + ' Delta'
     elif variable == 'p11':
-        label = r'$p_{11}$' + ' Delta'
+        label = r'$p_{1,1}$' + ' Delta'
     
     return label
 

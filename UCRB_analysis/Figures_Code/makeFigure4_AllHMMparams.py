@@ -22,7 +22,7 @@ def makeFigure4_AllHMMparams():
     CMIP['Ensemble'] = 'CMIP'
     Paleo['Ensemble'] = 'Paleo'
     Original_1000['Ensemble'] = 'Box Around Historical'
-    Wider_1000['Ensemble'] = 'All Encompassing'
+    Wider_1000['Ensemble'] = 'All-Encompassing'
     
     allSamples = pd.concat([Wider_1000,Original_1000,Paleo,CMIP,Historical])
     col = allSamples.columns.tolist()

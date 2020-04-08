@@ -19,7 +19,7 @@ def makeFigure5_AllFlowRanges():
     np.sum(wider_1000, axis=2)]
     
     # plotting characteristics
-    labels=['Historical','CMIP','Box\naround\nHistorical','Paleo','All\nEncompassing']
+    labels=['Historical','CMIP','Box\nAround\nHistorical','Paleo','All-\nEncompassing']
     colors = ['#80b1d3','#ffffb3','#fb8072','#b3de69','#bebada']
     
     sns.set_style("darkgrid")
@@ -35,6 +35,7 @@ def makeFigure5_AllFlowRanges():
         vp.set_edgecolor('black')
         vp.set_alpha(1)
     ax.set_yscale( "log" )
+    ax.set_ylabel('Annual Flow at Basin Outlet (m' + r'$^3$' + ')',fontsize=16)
     ax.tick_params(axis='both',labelsize=14)
     ax.set_xticks(np.arange(1,6))
     ax.set_xticklabels(labels,fontsize=16)
