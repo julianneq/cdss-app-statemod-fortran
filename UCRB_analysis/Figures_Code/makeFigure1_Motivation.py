@@ -41,9 +41,9 @@ def makeFigure1_Motivation():
     fig, axes = plt.subplots(3,4,figsize=(13.7,9.5))
     
     # plot failure response surfaces
-    p1 = plotResponseSurface(axes[0,0], contour_cmap, xa, ya, z1, rvs1, contour_levels, 'Policy 1', '#006d2c', ylabel=True)
-    p1 = plotResponseSurface(axes[0,1], contour_cmap, xa, ya, z2, rvs1, contour_levels, 'Policy 2', '#984ea3')
-    p1 = plotResponseSurface(axes[0,2], contour_cmap, xb, yb, z1b, rvs1, contour_levels, 'Policy 1', '#006d2c')
+    pBase, p1 = plotResponseSurface(axes[0,0], contour_cmap, xa, ya, z1, rvs1, contour_levels, 'Policy 1', '#006d2c', ylabel=True)
+    pBase, p1 = plotResponseSurface(axes[0,1], contour_cmap, xa, ya, z2, rvs1, contour_levels, 'Policy 2', '#984ea3')
+    pBase, p1 = plotResponseSurface(axes[0,2], contour_cmap, xb, yb, z1b, rvs1, contour_levels, 'Policy 1', '#006d2c')
     plotResponseSurface(axes[0,3], contour_cmap, xb, yb, z2b, rvs1, contour_levels, 'Policy 2', '#984ea3')
     # make box for smaller region within larger region
     axes[0,2].plot([1,1],[0,2],c='k')
@@ -82,7 +82,7 @@ def makeFigure1_Motivation():
     fig.subplots_adjust(wspace=0.4,hspace=0.3,bottom=0.13)
     B1 = plt.Rectangle((0, 0), 1, 1, fc='#377eb8', edgecolor='none') # success color
     B2 = plt.Rectangle((0, 0), 1, 1, fc='#e41a1c', edgecolor='none') # failure color
-    fig.legend([p1,p2,B1,B2], ['Paleo','CMIP','Success','Failure'], ncol=4, loc='lower center',fontsize=16)
+    fig.legend([pBase, p1,p2,B1,B2], ['Historical','Paleo','CMIP','Success','Failure'], ncol=5, loc='lower center',fontsize=16)
     fig.savefig('Figure1_Motivation.pdf')
     fig.clf()
     
@@ -125,7 +125,7 @@ def plotResponseSurface(ax, contour_cmap, xgrid, ygrid, z, rvs, contour_levels, 
     ax.set_xticklabels('')
     ax.set_yticklabels('')
     ax.set_xlabel(r'$\Delta$' + ' Precipitation', fontsize=16)
-    ax.scatter(0,0,c='k',s=100)
+    pBase = ax.scatter(0,0,c='k',s=100)
     ax.set_title(title,color=titlecolor, fontsize=16)
     if ylabel == True:
         ax.set_ylabel(r'$\Delta$' + ' Temperature', fontsize=16)
@@ -133,7 +133,7 @@ def plotResponseSurface(ax, contour_cmap, xgrid, ygrid, z, rvs, contour_levels, 
     # plot fake Paleo samples
     p1 = ax.scatter(rvs[:,0],rvs[:,1],c='#b3de69')
     
-    return p1
+    return pBase, p1
 
 def sensitivityChart(ax, variables, result, ylabel=False):
     S_indices = np.array([result['S1'][0],result['S1'][1],1-np.sum(result['S1'])])
