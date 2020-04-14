@@ -54,6 +54,29 @@ def diagnostics(fittedvalues, residuals, data, predictand):
 # scaling of reconstructed Cisco flows to predict CO-UT stateline flows
 diagnostics(Paleo['ScaledReconCisco'][340:429],Paleo['ScalingResid'][340:429],Paleo.iloc[340:429],'ObservedNaturalStateline')
 
+def norm_MC(Nyears,theoretical,dataCorr):
+    rhoVector = np.zeros(10000)
+    for i in range(10000):
+        simulated = ss.norm.rvs(0,1, size=Nyears)
+        rhoVector[i] = np.corrcoef(np.sort(simulated), theoretical)[0,1]
+            
+    count = 0
+    for i in range(len(rhoVector)):
+        if dataCorr < rhoVector[i]:
+            count = count + 1
+            
+    p_value = 1 - count/10000
+ 
+    return p_value
+
+# test if log-space residuals divided by log-space predicted mean are normally distributed
+Nyears = len(Paleo['ScalingResid'][340:429])
+m = np.arange(Nyears)+1
+p = (m-0.5)/Nyears
+norm = ss.norm.ppf(p,0,1)
+normRho = np.corrcoef((np.sort(Paleo['ScalingResid'][340:429])-np.mean(Paleo['ScalingResid'][340:429]))/np.std(Paleo['ScalingResid'][340:429]),norm)[0,1]
+normSigLevel = norm_MC(Nyears, norm, normRho)
+print(normSigLevel)
 
 # fit HMM to true observations of flows at state line over historical record
 def fitParams(flows):
