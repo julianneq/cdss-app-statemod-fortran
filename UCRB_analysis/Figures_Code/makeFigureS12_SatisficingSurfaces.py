@@ -25,7 +25,7 @@ def makeFigureS12_SatisficingSurfaces():
 
     cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
     cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.set_ylabel("Predicted Probability of Success", rotation=-90, va="bottom",fontsize=16)
+    cbar.ax.set_ylabel("Percent of realizations\nin which criterion is met", rotation=-90, va="bottom",fontsize=16)
     fig.subplots_adjust(right=0.8,wspace=0.5)
     fig.set_size_inches([18.4,8.5])
     fig.savefig("FigureS12_SatisficingSurface.pdf")
