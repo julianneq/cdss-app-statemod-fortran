@@ -151,6 +151,8 @@ def setupProblem(design):
         param_bounds = np.loadtxt('../Qgen/uncertain_params_wider.txt', usecols=(1,2))[7:13,:]
     elif design == 'Paleo_SOWs':
     	param_bounds = np.loadtxt('../Qgen/uncertain_params_paleo.txt',usecols=(1,2))[7:13,:]
+    elif design == 'NonOverlappingPaleo_SOWs':
+    	param_bounds = np.loadtxt('../Qgen/uncertain_params_Non-OverlappingPaleo.txt',usecols=(1,2))[7:13,:]
     elif design == 'CMIP_SOWs':
     	param_bounds = np.loadtxt('../Qgen/uncertain_params_CMIP.txt',usecols=(1,2))[7:13,:]
     elif design == 'CMIPunscaled_SOWs':

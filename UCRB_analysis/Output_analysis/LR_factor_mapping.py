@@ -56,11 +56,11 @@ for i in range(np.shape(HMMparams)[0]):
         LHsamples[i,:] = convertParamsToMult(newParams)
 
 realizations = 10
-if design == 'LHsamples_original_1000_AnnQonly' or design == 'LHsamples_original_200_AnnQonly':
+if design == 'LHsamples_original_1000_AnnQonly' or design == 'LHsamples_original_100_AnnQonly':
     param_bounds=np.loadtxt('../Qgen/uncertain_params_original.txt', usecols=(1,2))[7:13,:]
-elif design == 'LHsamples_narrowed_1000_AnnQonly' or design == 'LHsamples_narrowed_200_AnnQonly':
+elif design == 'LHsamples_narrowed_1000_AnnQonly' or design == 'LHsamples_narrowed_100_AnnQonly':
     param_bounds=np.loadtxt('../Qgen/uncertain_params_narrowed.txt', usecols=(1,2))[7:13,:]
-elif design == 'LHsamples_wider_1000_AnnQonly' or design == 'LHsamples_wider_200_AnnQonly':
+elif design == 'LHsamples_wider_1000_AnnQonly' or design == 'LHsamples_wider_100_AnnQonly':
     param_bounds=np.loadtxt('../Qgen/uncertain_params_wider.txt', usecols=(1,2))[7:13,:]
 elif design == 'Paleo_SOWs':
     param_bounds=np.loadtxt('../Qgen/uncertain_params_paleo.txt',usecols=(1,2))[7:13,:]
@@ -112,13 +112,10 @@ def plotfailureheatmap(ID):
     if ID=='7202003':
         streamflow = np.zeros([nMonths,len(LHsamples[:,0])*realizations])
         
-        for j in range(len(LHsamples[:,0])):
-            data= np.loadtxt('../../../'+design+'/Infofiles/' +\
-                             ID + '/' + ID + '_streamflow_' + str(rows_to_keep[j]+1) + '.txt')[:,1:]
-            streamflow[:,j*realizations:j*realizations+realizations]=data
-        
-        streamflowhistoric = np.loadtxt('../../../LHsamples_original_1000_AnnQonly/Infofiles/' +\
-                                        ID + '/' + ID + '_streamflow_hist.txt')[:,1]
+        data = np.load('../../../'+design+'/Infofiles/' + ID + '_streamflow.npy')
+        streamflow = data[:,1:,:]
+        streamflow = streamflow[:,:,rows_to_keep]
+        streamflowhistoric = np.loadtxt('../../../LHsamples_original_1000_AnnQonly/Infofiles/' + ID + '_streamflow_hist.txt')[:,1]
         
         historic_percents = [100-scipy.stats.percentileofscore(streamflowhistoric, dem, kind='strict') for dem in streamdemand]
 
@@ -141,12 +138,12 @@ def plotfailureheatmap(ID):
                 gridcells.append(0)
         
     else:                     
-        data= np.loadtxt('../../../LHsamples_original_1000_AnnQonly/Infofiles/' +  ID + '/' + ID + '_info_hist.txt')
+        data= np.loadtxt('../../../LHsamples_original_1000_AnnQonly/Infofiles/' + ID + '_info_hist.txt')
         historic_demands = data[:,1]
         historic_shortages = data[:,2]
         #reshape into water years
-        historic_shortages_f= np.reshape(historic_shortages, (int(np.size(historic_shortages)/n), n))
-        historic_demands_f= np.reshape(historic_demands, (int(np.size(historic_demands)/n), n))
+        historic_shortages_f = np.reshape(historic_shortages, (int(np.size(historic_shortages)/n), n))
+        historic_demands_f = np.reshape(historic_demands, (int(np.size(historic_demands)/n), n))
         
         historic_demands_f_WY = np.sum(historic_demands_f,axis=1)
         historic_shortages_f_WY = np.sum(historic_shortages_f,axis=1)
@@ -158,22 +155,24 @@ def plotfailureheatmap(ID):
         
         shortages = np.zeros([nMonths,len(LHsamples[:,0])*realizations])
         demands = np.zeros([nMonths,len(LHsamples[:,0])*realizations])
-        for j in range(len(LHsamples[:,0])):
-            data= np.loadtxt('../../../'+design+'/Infofiles/' +  ID + '/' + ID + '_info_' + str(rows_to_keep[j]+1) + '.txt')
-            try:
-                demands[:,j*realizations:j*realizations+realizations]=data[:,idx_demand]
-                shortages[:,j*realizations:j*realizations+realizations]=data[:,idx_shortage]
-            except:
-                print('problem with ' + ID + '_info_' + str(rows_to_keep[j]+1))
-                
+        data = np.load('../../../'+design+'/Infofiles/' + ID + '_info.npy')
+        demands = data[:,idx_demand,:]
+        shortages = data[:,idx_shortage,:]
+        demands = demands[:,:,rows_to_keep]
+        shortages = shortages[:,:,rows_to_keep]
+        # replace failed runs with np.nan (currently -999.9)
+        demands[demands < 0] = np.nan
+        shortages[shortages < 0] = np.nan
+
         #Reshape into water years
         #Create matrix of [no. years x no. months x no. experiments]
-        f_shortages = np.zeros([int(nMonths/n),n,len(LHsamples[:,0])*realizations])
-        f_demands = np.zeros([int(nMonths/n),n,len(LHsamples[:,0])*realizations]) 
-        for i in range(len(LHsamples[:,0])*realizations):
-            f_shortages[:,:,i]= np.reshape(shortages[:,i], (int(np.size(shortages[:,i])/n), n))
-            f_demands[:,:,i]= np.reshape(demands[:,i], (int(np.size(demands[:,i])/n), n))
-        
+        f_shortages = np.zeros([nyears,n,len(LHsamples[:,0])*realizations])
+        f_demands = np.zeros([nyears,n,len(LHsamples[:,0])*realizations]) 
+        for i in range(len(LHsamples[:,0])):
+            for j in range(realizations):
+                f_shortages[:,:,i*realizations+j] = np.reshape(shortages[:,j,i], [nyears, n])
+                f_demands[:,:,i*realizations+j] = np.reshape(demands[:,j,i], [nyears, n])
+
         # Shortage per water year
         f_demands_WY = np.sum(f_demands,axis=1)
         f_shortages_WY = np.sum(f_shortages,axis=1)

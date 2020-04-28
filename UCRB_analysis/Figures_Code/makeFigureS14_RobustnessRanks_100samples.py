@@ -4,14 +4,14 @@ import seaborn as sns
 from scipy import stats as ss
 from makeFigure9_FactorMaps import plotFailureHeatmap, highlight_cell
 
-def makeFigure10_RobustnessRanks():
+def makeFigureS14_RobustnessRanks_100samples():
 
-    allRobustness = np.load('../Output_analysis/RobustnessRanks_no15mi.npy')
+    allRobustness = np.load('../Output_analysis/RobustnessRanks_no15mi_100samples.npy')
     nstructures = np.shape(allRobustness)[2]
     colors=['#fb8072','#ffffb3','#b3de69','#bebada'] # original, CMIP, paleo, wider
     colOrder = [0,2,3,1] # order of columns to plot
     labels = ['Box Around Historical','CMIP','Paleo','All-Encompassing']
-    design = 'LHsamples_wider_1000_AnnQonly'
+    design = 'LHsamples_wider_100_AnnQonly'
     structure = '53_ADC022'
             
     #sns.set_style("dark")
@@ -71,7 +71,7 @@ def makeFigure10_RobustnessRanks():
     fig.set_size_inches([19.2,9.6])
     fig.subplots_adjust(bottom=0.2,wspace=0.25,hspace=0.35)
     fig.legend(handles, labels, loc='lower center', ncol=2, frameon=True, fontsize=16)
-    fig.savefig('Figure10_RobustnessRanks.pdf')
+    fig.savefig('FigureS14_RobustnessRanks_100samples.pdf')
     fig.clf()
     
     return None

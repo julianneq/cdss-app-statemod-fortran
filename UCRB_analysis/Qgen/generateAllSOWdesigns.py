@@ -68,13 +68,22 @@ np.savetxt('CMIPunscaled_SOWs.txt',CMIPunscaled_SOWs)
 
 
 # repeat with Paleo data
-meanPaleoParams = np.loadtxt('CMIP/MeanCMIPparams.txt',skiprows=1)
+meanPaleoParams = np.loadtxt('Reconstruction/MeanPaleoParams.txt',skiprows=1)
 
 Paleo_SOWs = np.tile(baseSOWparams,(429-64+1,1))
 Paleo_SOWs[:,7:11] = meanPaleoParams[:,0:4] / histParams[0:4]
 Paleo_SOWs[:,11:13] = meanPaleoParams[:,4::] - histParams[4::]
 
 np.savetxt('Paleo_SOWs.txt',Paleo_SOWs)
+
+nonOverlappingPaleoParams = np.loadtxt('Reconstruction/Non-Overlapping_PaleoParams.txt',skiprows=1)
+
+nonOverlappingPaleo_SOWs = np.tile(baseSOWparams,(7,1))
+nonOverlappingPaleo_SOWs[:,7:11] = nonOverlappingPaleoParams[:,0:4] / histParams[0:4]
+nonOverlappingPaleo_SOWs[:,11:13] = nonOverlappingPaleoParams[:,4::] - histParams[4::]
+
+np.savetxt('NonOverlappingPaleo_SOWs.txt',nonOverlappingPaleo_SOWs)
+
 
 
 # remove demand and snowmelt changes from LHsample designs

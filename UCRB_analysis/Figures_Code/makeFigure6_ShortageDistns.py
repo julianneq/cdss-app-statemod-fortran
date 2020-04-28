@@ -22,8 +22,8 @@ def makeFigure6_ShortageDistns():
     count = 1 # subplot counter
     for structure in structures:
         # load historical shortage and demand data and convert acre-ft to m^3
-        hist_short = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,2]*1233.48
-        hist_demand = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,1]*1233.48
+        hist_short = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,2]*1233.48/1E6
+        hist_demand = np.loadtxt('../Simulation_outputs/' + structure + '_info_hist.txt')[:,1]*1233.48/1E6
         # replace failed runs with np.nan (currently -999.9)
         hist_short[hist_short < 0] = np.nan
         for i, design in enumerate(designs):
@@ -35,8 +35,8 @@ def makeFigure6_ShortageDistns():
             # load shortage data for this experimental design
             SYN = np.load('../Simulation_outputs/' + design + '/' + structure + '_info.npy')
             # extract columns for year shortage and demand and convert acre-ft to ^3
-            SYN_short = SYN[:,short_idx,:]*1233.48
-            SYN_demand = SYN[:,demand_idx,:]*1233.48
+            SYN_short = SYN[:,short_idx,:]*1233.48/1E6
+            SYN_demand = SYN[:,demand_idx,:]*1233.48/1E6
             # use just the samples within the experimental design
             SYN_short = SYN_short[:,:,rows_to_keep]
             SYN_demand = SYN_demand[:,:,rows_to_keep]
@@ -59,19 +59,19 @@ def makeFigure6_ShortageDistns():
             if count <= 4:
                 ax.tick_params(axis='x',labelbottom='off')
                 ax.set_title(titles[count-1],fontsize=16)
-                ax.set_ylim(0,6200000)
-                ax.ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+                ax.set_ylim(0,6.2)
+                #ax.ticklabel_format(style='sci', axis='y', scilimits=(6,6))
             else:
                 ax.tick_params(axis='x',labelsize=14)
-                ax.set_ylim(0,370000000)
-                ax.ticklabel_format(style='sci', axis='y', scilimits=(8,8))
+                ax.set_ylim(0,370)
+                #ax.ticklabel_format(style='sci', axis='y', scilimits=(8,8))
                 
             # iterature subplot counter
             count += 1
             
     fig.set_size_inches([16,8])
     fig.text(0.5, 0.15, 'Percentile', ha='center', fontsize=16)
-    fig.text(0.05, 0.5, 'Annual Shortage (m' + r'$^3$' + ')', va='center', rotation=90, fontsize=16)
+    fig.text(0.05, 0.5, 'Annual Shortage (millions of m' + r'$^3$' + ')', va='center', rotation=90, fontsize=16)
     fig.subplots_adjust(bottom=0.22)
     labels_transposed = [labels[9],labels[4],labels[8],labels[3],labels[7],labels[2],labels[6],labels[1],labels[5],labels[0]]
     handles_transposed = [handles[9],handles[4],handles[8],handles[3],handles[7],handles[2],handles[6],handles[1],handles[5],handles[0]]

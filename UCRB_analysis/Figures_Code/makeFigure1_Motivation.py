@@ -21,12 +21,12 @@ def makeFigure1_Motivation():
     # generate 2 sets of MVN points in each region
     np.random.seed(7)
     mu1 = [0,1]
-    cov1 = [[0.2,-0.7*0.2],[-0.7*0.2,0.2]]
+    cov1 = [[0.2,-0.35*np.sqrt(0.2)],[-0.35*np.sqrt(0.2),0.2]]
     rvs1 = ss.multivariate_normal.rvs(mu1,cov1,20)
     
     np.random.seed(7)
     mu2 = [0.5,1.5]
-    cov2 = [[0.3,0.7*0.3],[0.7*0.3,0.3]]
+    cov2 = [[0.3,0.35*np.sqrt(0.3)],[0.35*np.sqrt(0.3),0.3]]
     rvs2 = ss.multivariate_normal.rvs(mu2,cov2,20)
     
     
@@ -179,8 +179,8 @@ def computeMixedPDF(mu1, cov1, mu2, cov2, policy):
     return z
 
 def KDEplot(ax, prob1, prob2, region):
-    sns.kdeplot(prob1,color='#006d2c',ax=ax)
-    sns.kdeplot(prob2,color='#984ea3',ax=ax)
+    sns.kdeplot(prob1,color='#006d2c',ax=ax,linewidth=3)
+    sns.kdeplot(prob2,color='#984ea3',ax=ax,linewidth=3)
     xmin = np.min([np.min(prob1),np.min(prob2)])
     xmax = np.max([np.max(prob1),np.max(prob2)])
     if region == 1:
@@ -188,7 +188,6 @@ def KDEplot(ax, prob1, prob2, region):
     else:
         ymax = 0.35
     
-    #ax.plot([0,0],[0,ymax],c='k')
     ax.set_ylim([0,ymax])
     ax.set_xlim([xmin,xmax])
     ax.set_xticklabels('')

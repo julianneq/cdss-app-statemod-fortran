@@ -153,3 +153,24 @@ meanParams = pd.DataFrame({'mu0':meanParams[:,0],'sigma0':meanParams[:,1],\
                           'mu1':meanParams[:,2],'sigma1':meanParams[:,3],\
                           'p00':meanParams[:,4],'p11':meanParams[:,5]})
 meanParams.to_csv('MeanPaleoParams.txt')
+
+# compare non-overlapping 64-yr windows of whole paleo-record and track mean parameter estimates over time
+nsims = 100
+stdev = np.std(Paleo['FractionScalingResid'][340:429])
+simParams = np.zeros([nsims,7,6])
+for i in range(nsims):
+    flows = Paleo['ScaledReconCisco'][0:429] + Paleo['ScaledReconCisco'][0:429]*ss.norm.rvs(0,stdev,429)
+    for j in range(7):
+        if j < 6:
+            simParams[i,j,:] = fitParams(np.array(flows[j*64:(j*64+64)]))
+        else:
+            simParams[i,j,:] = fitParams(np.array(flows[j*64::]))
+            
+# find mean over nsims
+meanParams = np.mean(simParams,0)
+
+# make scatter plot of 366 mean parameter estimates, CMIP parameter estimates, and historical parameter estimates
+meanParams = pd.DataFrame({'mu0':meanParams[:,0],'sigma0':meanParams[:,1],\
+                          'mu1':meanParams[:,2],'sigma1':meanParams[:,3],\
+                          'p00':meanParams[:,4],'p11':meanParams[:,5]})
+meanParams.to_csv('Non-Overlapping_PaleoParams.txt')
