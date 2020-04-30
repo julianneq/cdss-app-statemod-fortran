@@ -53,7 +53,7 @@ def makeFigure7_VarianceDecomposition():
     fig.text(0.5, 0.15, 'Percentile of Shortage', ha='center', fontsize=16)
     fig.text(0.05, 0.5, 'Portion of Variance Explained', va='center', rotation=90, fontsize=16)
     legend = fig.legend([mu0,sigma0,mu1,sigma1,p00,p11,Interact],\
-                      [r'$\mu_0$',r'$\sigma_0$',r'$\mu_1$',r'$\sigma_1$',r'$p_{0,0}$',r'$p_{1,1}$','Interactions'],\
+                      [r'$\mu_d$',r'$\sigma_d$',r'$\mu_w$',r'$\sigma_w$',r'$p_{d,d}$',r'$p_{w,w}$','Interactions'],\
                       loc='lower center', ncol=4, fontsize=16, frameon=True)
     plt.setp(legend.get_title(),fontsize=16)
     fig.savefig('Figure7_VarianceDecomposition.pdf')

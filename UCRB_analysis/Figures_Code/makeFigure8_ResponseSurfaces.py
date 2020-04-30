@@ -122,17 +122,17 @@ def makeFigure8_ResponseSurfaces():
 
 def getLabels(variable):
     if variable == 'mu0':
-        label = r'$\mu_0$' + ' Multiplier'
+        label = r'$\mu_d$' + ' Multiplier'
     elif variable == 'sigma0':
-        label = r'$\sigma_0$' + ' Multiplier'
+        label = r'$\sigma_d$' + ' Multiplier'
     elif variable == 'mu1':
-        label = r'$\mu_1$' + ' Multiplier'
+        label = r'$\mu_w$' + ' Multiplier'
     elif variable == 'sigma1':
-        label = r'$\sigma_1$' + ' Multiplier'
+        label = r'$\sigma_w$' + ' Multiplier'
     elif variable == 'p00':
-        label = r'$p_{0,0}$' + ' Delta'
+        label = r'$p_{d,d}$' + ' Delta'
     elif variable == 'p11':
-        label = r'$p_{1,1}$' + ' Delta'
+        label = r'$p_{w,w}$' + ' Delta'
     
     return label
 
