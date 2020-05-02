@@ -21,12 +21,12 @@ def makeFigure1_Motivation():
     # generate 2 sets of MVN points in each region
     np.random.seed(7)
     mu1 = [0,1]
-    cov1 = [[0.2,-0.35*np.sqrt(0.2)],[-0.35*np.sqrt(0.2),0.2]]
+    cov1 = [[0.2,-0.7*0.2],[-0.7*0.2,0.2]]
     rvs1 = ss.multivariate_normal.rvs(mu1,cov1,20)
     
     np.random.seed(7)
     mu2 = [0.5,1.5]
-    cov2 = [[0.3,0.35*np.sqrt(0.3)],[0.35*np.sqrt(0.3),0.3]]
+    cov2 = [[0.3,0.7*0.3],[0.7*0.3,0.3]]
     rvs2 = ss.multivariate_normal.rvs(mu2,cov2,20)
     
     
